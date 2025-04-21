@@ -113,6 +113,7 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+        board.setViewingPerspective(side);
 
         checkGameOver();
         if (changed) {
@@ -177,7 +178,21 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
-
+        if(emptySpaceExists(b))
+            return true;
+        int len= b.size();
+        for(int i=0;i<len;i++) {
+            for(int j=0;j<len;j++) {
+                if(i-1>=0 && b.tile(i-1,j).value()==b.tile(i,j).value())
+                    return true;
+                if(i+1<len  && b.tile(i+1,j).value()==b.tile(i,j).value())
+                    return true;
+                if(j-1>=0 && b.tile(i,j-1).value()==b.tile(i,j).value())
+                    return true;
+                if(j+1<len && b.tile(i,j+1).value()==b.tile(i,j).value())
+                    return true;
+            }
+        }
         return false;
     }
 
