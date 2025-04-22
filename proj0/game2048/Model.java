@@ -108,42 +108,17 @@ public class Model extends Observable {
      *    and the trailing tile does not.
      * */
     public boolean tilt(Side side) {
-        boolean changed;
-        changed = false;
+        boolean changed = false;
 
-        // TODO: Modify this.board (and perhaps this.score) to account
-        // for the tilt to the Side SIDE. If the board changed, set the
-        // changed local variable to true.
-
-        //由于有side这个东西，所以不管什么方向，我们都可以认为是向上移动，并进行处理
+        // Set the viewing perspective to the side we're tilting toward
         board.setViewingPerspective(side);
-        int size=board.size();
-        Tile[][] all=get_all_Tile();
-        changed=move_null(all,side)||changed;
-        all=get_all_Tile();
-        changed=move_merge(all,side)||changed;
 
-//        for (int c=0;c<size;c++) {
-//            Tile last=null;
-//            int col_last=side.col(c,0,size);
-//            int row_last=side.row(c,0,size);
-//            for (int r=0; r<size; r++) {
-//                Tile now=all[r][c];
-//                int col_now=side.col(c,r,size);
-//                int row_now=side.row(c,r,size);
-//                if(now==null) {
-//                        continue;
-//                }
-//                else if (last==null)
-//                    last=now;
-//                else if (last.value()==now.value()) {
-//                    changed = board.move(now.col(), now.row(), last) || changed;
-//                }
-//                else if ((Math.abs(last.row()-now.row())+Math.abs(last.col()-now.col()))>1)
-//                    changed=board.move(now.col(), now.row(), last)||changed;
-//
-//            }
-//        }
+        // Process each column
+        for (int col = 0; col < board.size(); col++)
+            changed = processColumnUpward(col) || changed;
+
+
+        board.setViewingPerspective(Side.NORTH);
 
         checkGameOver();
         if (changed) {
@@ -152,82 +127,44 @@ public class Model extends Observable {
         return changed;
     }
 
-    //获取在特定方向视角下所有的Tile
-    private Tile[][] get_all_Tile()
-    {
-        int size=board.size();
-        Tile[][] all=new Tile[size][size];
-        Iterator<Tile> iter=board.iterator();
-
-        for (int i = size-1; i >=0; i--)
-            for (int j = 0; j < size; j++)
-                all[i][j] = iter.next();
-        return all;
-    }
-
-    //把所有Tile移动到顶上，把null移动到下面
-    private boolean move_null(Tile[][] all,Side side) {
-        int size=board.size();
-        boolean change=false;
-        Tile [][]see=get_all_Tile();
-        //记录本处的上面有多少Tile不是null，便于移动
-        int[][] num_null=new int[size][size];
-        for(int c=0;c<size;c++) {
-            num_null[0][c]=0;
-            for (int r=1; r<size; r++)
-                num_null[r][c]=num_null[r-1][c] + (all[r-1][c]==null?1:0);
-        }
-
-        for(int c=0;c<size;c++) {
-            for (int r=0; r<size; r++) {
-                Tile now=all[r][c];
-                int num=num_null[r][c];
-                if(now==null) 
-                    continue;
-                if(num==0)
-                    continue;
-                //now不是null，而且上面有null，那么它需要上移num
-//                int row=side.row(c,r+num-1,size);
-//                int col=side.col(c,r+num-1,size);
-//                change=board.move(col, row, now)||change;
-//                see=get_all_Tile();
-                change=true;
-                board.move(now.col(),now.row()+num,now);
+    //处理某一列
+    private boolean processColumnUpward(int col) {
+        boolean columnChanged = false;
+        int size = board.size();
+        //数组记录某一列是否合并过，避免多次合并
+        boolean[] mergedRows = new boolean[size];
+        for(int row=size-2; row>=0; row--) {
+            Tile now_tile = board.tile(col, row);
+            if (now_tile==null)
+                continue;
+            int last_row =row+1;
+            while(last_row<size&&board.tile(col, last_row)==null) {
+                last_row++;
             }
-        }
-        return change;
-    }
-
-    private boolean move_merge(Tile[][] all,Side side) {
-        int size=board.size();
-        boolean change=false;
-        for(int c=0;c<size;c++) {
-            Tile last=null;
-            for (int r=0; r<size; r++) {
-                Tile now=all[r][c];
-                if(now==null)
-                    break;
-                if(last==null)
-                    last=now;
-                else if(last.value()==now.value())
-                {
-                    int row=last.row();
-                    int col=last.col();
-                    change=true;
-                    board.move(col, row, now);
-                    score+=2*last.value();
-                    all=get_all_Tile();
-                    move_null(all,side);
-                    all=get_all_Tile();
-                    last=null;
-                    r--;
+            if(last_row<size&&!mergedRows[last_row]) {
+                Tile last_tile = board.tile(col, last_row);
+                if(last_tile!=null&& last_tile.value()==now_tile.value()) {
+                    board.move(col,last_row,now_tile);
+                    score += now_tile.value()*2;
+                    mergedRows[last_row]=true;
+                    columnChanged = true;
                 }
-                else
-                    last=now;
+                else if(last_row>row+1) {
+                    board.move(col,last_row-1,now_tile);
+                    columnChanged = true;
+                }
+            }
+            else if(last_row>row+1) {
+                board.move(col,last_row-1,now_tile);
+                columnChanged = true;
             }
         }
-        return change;
+
+
+        return columnChanged;
     }
+
+
     /** Checks if the game is over and sets the gameOver variable
      *  appropriately.
      */
