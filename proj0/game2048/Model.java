@@ -1,7 +1,6 @@
 package game2048;
 
 import java.util.Formatter;
-import java.util.Iterator;
 import java.util.Observable;
 
 
