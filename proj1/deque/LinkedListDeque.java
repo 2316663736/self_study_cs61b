@@ -128,11 +128,19 @@ public class LinkedListDeque<T> {
             return false;
         if(((LinkedListDeque<?>) o).size()!=this.size())
             return false;
-        for(int i=0; i<this.size(); i++)
-            if(this.get(i).equals(((LinkedListDeque<?>) o).get(i)))
-                continue;
-            else
+//        for(int i=0; i<this.size(); i++)
+//            if(this.get(i).equals(((LinkedListDeque<?>) o).get(i)))
+//                continue;
+//            else
+//                return false;
+        if(this.isEmpty())
+            return true;
+        Iterator<?> itr1= ((LinkedListDeque<?>) o).iterator();
+        Iterator<T> itr2=this.iterator();
+        while(itr1.hasNext() && itr2.hasNext()) {
+            if(!itr1.next().equals(itr2.next()))
                 return false;
+        }
 
         return true;
     }
