@@ -1,33 +1,49 @@
 package deque;
 import java.util.Iterator;
+/**
+ * ArrayDeque是一个基于可调整大小数组实现的双端队列。
+ * 它允许在队列的两端进行高效的添加和删除操作，具有常数级别的平摊时间复杂度。
+ *
+ * @param <T> 存储在队列中的元素类型
+ */
 public class ArrayDeque<T> {
+    /** 存储元素的数组 */
     private T[] array;
+    /** 队列中的元素数量 */
     private int size;
-
+    /** 数组的当前长度 */
     private int now_len;
-
-    private int min_size;
-    private double small_rate;
-    private double expand_rate;
-    private int min_expand_n;
-
+    /** 缩小前数组的最小大小 */
+    private int min_size=16;
+    /** 缩小数组的阈值比率 */
+    private double small_rate=0.25;
+    /** 扩展数组的比率 */
+    private double expand_rate=1.02;
+    /** 扩展时添加的最小元素数量 */
+    private int min_expand_n=2;
+    /**
+     * 构造一个初始容量为8的空ArrayDeque。
+     */
     public ArrayDeque(){
         size=0;
         now_len=8;
         array = (T[]) new Object[now_len];
-        min_size=16;
-        small_rate=0.25;
-        expand_rate=1.02;
-        min_expand_n=2;
     }
-
+    /**
+     * 将数组大小调整为新的大小。
+     *
+     * @param new_size 数组的新大小
+     */
     private void reszie(int new_size){
         T[] new_array=(T[]) new Object[new_size];
         System.arraycopy(array, 0, new_array, 0, size);
         array=new_array;
         now_len=new_size;
     }
-
+    /**
+     * 在必要时扩展数组大小。
+     * 当元素数量达到数组容量时，根据扩展比率增加数组大小。
+     */
     private void expand_size(){
         if(size==now_len)
             reszie(Math.max((int)Math.round(now_len*expand_rate),min_expand_n+now_len));
@@ -47,7 +63,11 @@ public class ArrayDeque<T> {
         array[size]=item;
         size++;
     }
-
+    /**
+     * 判断队列是否为空。
+     *
+     * @return 如果队列为空则返回true，否则返回false
+     */
     public boolean isEmpty(){
         return size==0;
     }
@@ -56,11 +76,14 @@ public class ArrayDeque<T> {
     public int size(){
         return size;
     }
-
+    /**
+     * 打印队列中从前到后的所有元素，以空格分隔。
+     * 最后跟一个换行符。
+     */
     public void printDeque(){
         Iterator<T> itr =iterator();
         while(itr.hasNext())
-            System.out.println(itr.next()+" ");
+            System.out.print(itr.next()+" ");
 
         System.out.println();
     }
@@ -68,6 +91,13 @@ public class ArrayDeque<T> {
         if(now_len>=min_size&&size<=(int)now_len*small_rate)
             reszie((int)(now_len*small_rate));
     }
+
+    /**
+     * 移除并返回队列前端的元素。
+     * 如果队列为空，则返回null。
+     *
+     * @return 队列前端的元素，如果队列为空则返回null
+     */
     public T removeFirst(){
         if(isEmpty())
             return null;
@@ -80,6 +110,12 @@ public class ArrayDeque<T> {
         return item;
     }
 
+    /**
+     * 移除并返回队列后端的元素。
+     * 如果队列为空，则返回null。
+     *
+     * @return 队列后端的元素，如果队列为空则返回null
+     */
     public T removeLast(){
         if(isEmpty())
             return null;
@@ -95,15 +131,23 @@ public class ArrayDeque<T> {
             return null;
         return array[index];
     }
-
+    /**
+     * ArrayDeque的迭代器实现。
+     */
     private class ArrayDequeIterator implements Iterator<T>{
+        /** 数组中的当前位置 */
         int now;
+        /**
+         * 构造一个从第一个元素开始的迭代器。
+         */
         public ArrayDequeIterator(){
             now=0;
         }
+        @Override
         public boolean hasNext(){
             return now<size;
         }
+        @Override
         public T next(){
             T item=array[now];
             now++;
@@ -114,7 +158,7 @@ public class ArrayDeque<T> {
     public Iterator<T> iterator(){
         return new ArrayDequeIterator();
     }
-
+    @Override
     public boolean equals(Object o){
         if (!(o instanceof ArrayDeque))
             return false;
