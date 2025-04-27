@@ -53,7 +53,7 @@ public class LinkedListDeque<T> {
     }
 
     public void printDeque(){
-        Iterator<T> itr =new LinkedListIterator();
+        Iterator<T> itr =iterator();
         while(itr.hasNext())
             System.out.println(itr.next()+" ");
 
@@ -128,11 +128,7 @@ public class LinkedListDeque<T> {
             return false;
         if(((LinkedListDeque<?>) o).size()!=this.size())
             return false;
-//        for(int i=0; i<this.size(); i++)
-//            if(this.get(i).equals(((LinkedListDeque<?>) o).get(i)))
-//                continue;
-//            else
-//                return false;
+
         if(this.isEmpty())
             return true;
         Iterator<?> itr1= ((LinkedListDeque<?>) o).iterator();
