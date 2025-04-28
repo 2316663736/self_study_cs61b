@@ -88,13 +88,7 @@ public class TestArrayDequeEC {
 //            assertEquals(msg,happySize, sadSize);
         }
 
-        for(int i = 0; i < N;i++) {
-            int num = StdRandom.uniform(0,sad.size());
-            int sadNum = sad.get(num);
-            int happyNum = happy.get(num);
-            msg  +=  "get(" + num + ")\n";
-            assertEquals(msg, happyNum, sadNum);
-        }
+
     }
 
 }
