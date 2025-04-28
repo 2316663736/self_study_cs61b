@@ -252,17 +252,14 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         Iterator<?> otherIter;
 
         // 获取对方的迭代器，处理不同类型的情况
-        try {
-            if (o instanceof Iterable) {
-                otherIter = ((Iterable<?>) o).iterator();
-            } else {
-                // 这种情况实际上不应该发生，因为已经确认是Deque，而Deque继承了Iterable
-                return false;
-            }
-        } catch (Exception e) {
-            // 防御性编程：如果获取迭代器失败
+
+        if (o instanceof Iterable) {
+            otherIter = ((Iterable<?>) o).iterator();
+        } else {
+            // 这种情况实际上不应该发生，因为已经确认是Deque，而Deque继承了Iterable
             return false;
         }
+
 
         // 逐个比较元素
         while (thisIter.hasNext() && otherIter.hasNext()) {
@@ -280,14 +277,11 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
             }
 
             // 使用equals比较，捕获可能的异常
-            try {
-                if (!thisElement.equals(otherElement)) {
-                    return false;
-                }
-            } catch (Exception e) {
-                // 如果equals抛出异常，视为不相等
+
+            if (!thisElement.equals(otherElement)) {
                 return false;
             }
+
         }
 
         // 确保两个迭代器都已经遍历完毕

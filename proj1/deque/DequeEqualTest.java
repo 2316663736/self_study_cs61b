@@ -65,28 +65,35 @@ public class DequeEqualTest {
         linkedDeque.addLast("third");
 
         // 测试基本相等性
-        assertTrue("ArrayDeque应该等于LinkedListDeque", arrayDeque.equals(linkedDeque));
+        assertTrue("ArrayDeque应该等于LinkedListDeque",
+                arrayDeque.equals(linkedDeque));
         assertTrue("LinkedListDeque应该等于ArrayDeque", linkedDeque.equals(arrayDeque));
 
         // 测试与null的比较
         arrayDeque.addLast(null);
         linkedDeque.addLast(null);
 
-        assertTrue("添加null后ArrayDeque应该等于LinkedListDeque", arrayDeque.equals(linkedDeque));
-        assertTrue("添加null后LinkedListDeque应该等于ArrayDeque", linkedDeque.equals(arrayDeque));
+        assertTrue("添加null后ArrayDeque应该等于LinkedListDeque",
+                arrayDeque.equals(linkedDeque));
+        assertTrue("添加null后LinkedListDeque应该等于ArrayDeque",
+                linkedDeque.equals(arrayDeque));
 
         // 测试自定义对象
         class CustomClass {
             private final int value;
 
-            public CustomClass(int value) {
+            private CustomClass(int value) {
                 this.value = value;
             }
 
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
-                if (!(o instanceof CustomClass)) return false;
+                if (this == o) {
+                    return true;
+                }
+                if (!(o instanceof CustomClass)) {
+                    return false;
+                }
                 CustomClass that = (CustomClass) o;
                 return value == that.value;
             }
@@ -101,12 +108,14 @@ public class DequeEqualTest {
         arrayDeque2.addLast(obj1);
         linkedDeque2.addLast(obj2);
 
-        assertTrue("含有自定义对象的ArrayDeque应该等于LinkedListDeque", arrayDeque2.equals(linkedDeque2));
-        assertTrue("含有自定义对象的LinkedListDeque应该等于ArrayDeque", linkedDeque2.equals(arrayDeque2));
+        assertTrue("含有自定义对象的ArrayDeque应该等于LinkedListDeque",
+                arrayDeque2.equals(linkedDeque2));
+        assertTrue("含有自定义对象的LinkedListDeque应该等于ArrayDeque",
+                linkedDeque2.equals(arrayDeque2));
 
         // 测试混合类型
         class SubClass extends CustomClass {
-            public SubClass(int value) {
+            private SubClass(int value) {
                 super(value);
             }
 
@@ -122,8 +131,10 @@ public class DequeEqualTest {
         arrayDeque3.addLast(new CustomClass(99));
         linkedDeque3.addLast(new SubClass(99)); // 不同类，但equals相等
 
-        assertTrue("含有继承类对象的ArrayDeque应该等于LinkedListDeque", arrayDeque3.equals(linkedDeque3));
-        assertTrue("含有继承类对象的LinkedListDeque应该等于ArrayDeque", linkedDeque3.equals(arrayDeque3));
+        assertTrue("含有继承类对象的ArrayDeque应该等于LinkedListDeque",
+                arrayDeque3.equals(linkedDeque3));
+        assertTrue("含有继承类对象的LinkedListDeque应该等于ArrayDeque",
+                linkedDeque3.equals(arrayDeque3));
 
         // 测试异构集合
         ArrayDeque<Object> arrayDeque4 = new ArrayDeque<>();
@@ -137,8 +148,10 @@ public class DequeEqualTest {
         linkedDeque4.addLast(123);
         linkedDeque4.addLast(new CustomClass(42));
 
-        assertTrue("含有混合类型的ArrayDeque应该等于LinkedListDeque", arrayDeque4.equals(linkedDeque4));
-        assertTrue("含有混合类型的LinkedListDeque应该等于ArrayDeque", linkedDeque4.equals(arrayDeque4));
+        assertTrue("含有混合类型的ArrayDeque应该等于LinkedListDeque",
+                arrayDeque4.equals(linkedDeque4));
+        assertTrue("含有混合类型的LinkedListDeque应该等于ArrayDeque",
+                linkedDeque4.equals(arrayDeque4));
     }
 
     @Test
@@ -147,8 +160,10 @@ public class DequeEqualTest {
         ArrayDeque<Integer> emptyArray = new ArrayDeque<>();
         LinkedListDeque<Integer> emptyLinked = new LinkedListDeque<>();
 
-        assertTrue("空的ArrayDeque应该等于空的LinkedListDeque", emptyArray.equals(emptyLinked));
-        assertTrue("空的LinkedListDeque应该等于空的ArrayDeque", emptyLinked.equals(emptyArray));
+        assertTrue("空的ArrayDeque应该等于空的LinkedListDeque",
+                emptyArray.equals(emptyLinked));
+        assertTrue("空的LinkedListDeque应该等于空的ArrayDeque",
+                emptyLinked.equals(emptyArray));
 
         // 只有一个元素的队列
         ArrayDeque<Integer> singleArray = new ArrayDeque<>();
@@ -157,8 +172,10 @@ public class DequeEqualTest {
         singleArray.addFirst(42);
         singleLinked.addFirst(42);
 
-        assertTrue("单元素ArrayDeque应该等于单元素LinkedListDeque", singleArray.equals(singleLinked));
-        assertTrue("单元素LinkedListDeque应该等于单元素ArrayDeque", singleLinked.equals(singleArray));
+        assertTrue("单元素ArrayDeque应该等于单元素LinkedListDeque",
+                singleArray.equals(singleLinked));
+        assertTrue("单元素LinkedListDeque应该等于单元素ArrayDeque",
+                singleLinked.equals(singleArray));
 
         // 一个包含null的队列
         ArrayDeque<Integer> nullArray = new ArrayDeque<>();
@@ -167,8 +184,10 @@ public class DequeEqualTest {
         nullArray.addFirst(null);
         nullLinked.addFirst(null);
 
-        assertTrue("含null的ArrayDeque应该等于含null的LinkedListDeque", nullArray.equals(nullLinked));
-        assertTrue("含null的LinkedListDeque应该等于含null的ArrayDeque", nullLinked.equals(nullArray));
+        assertTrue("含null的ArrayDeque应该等于含null的LinkedListDeque",
+                nullArray.equals(nullLinked));
+        assertTrue("含null的LinkedListDeque应该等于含null的ArrayDeque",
+                nullLinked.equals(nullArray));
     }
 
     @Test
@@ -231,21 +250,27 @@ public class DequeEqualTest {
         arrayDeque.addLast(null);
         linkedDeque.addLast(null);
 
-        assertTrue("添加null后ArrayDeque应该等于LinkedListDeque", arrayDeque.equals(linkedDeque));
-        assertTrue("添加null后LinkedListDeque应该等于ArrayDeque", linkedDeque.equals(arrayDeque));
+        assertTrue("添加null后ArrayDeque应该等于LinkedListDeque",
+                arrayDeque.equals(linkedDeque));
+        assertTrue("添加null后LinkedListDeque应该等于ArrayDeque",
+                linkedDeque.equals(arrayDeque));
 
         // 测试自定义对象
         class CustomClass {
             private final int value;
 
-            public CustomClass(int value) {
+            private CustomClass(int value) {
                 this.value = value;
             }
 
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
-                if (!(o instanceof CustomClass)) return false;
+                if (this == o) {
+                    return true;
+                }
+                if (!(o instanceof CustomClass)) {
+                    return false;
+                }
                 CustomClass that = (CustomClass) o;
                 return value == that.value;
             }
@@ -260,12 +285,14 @@ public class DequeEqualTest {
         arrayDeque2.addLast(obj1);
         linkedDeque2.addLast(obj2);
 
-        assertTrue("含有自定义对象的ArrayDeque应该等于LinkedListDeque", arrayDeque2.equals(linkedDeque2));
-        assertTrue("含有自定义对象的LinkedListDeque应该等于ArrayDeque", linkedDeque2.equals(arrayDeque2));
+        assertTrue("含有自定义对象的ArrayDeque应该等于LinkedListDeque",
+                arrayDeque2.equals(linkedDeque2));
+        assertTrue("含有自定义对象的LinkedListDeque应该等于ArrayDeque",
+                linkedDeque2.equals(arrayDeque2));
 
         // 测试混合类型
         class SubClass extends CustomClass {
-            public SubClass(int value) {
+            private SubClass(int value) {
                 super(value);
             }
 
@@ -281,8 +308,10 @@ public class DequeEqualTest {
         arrayDeque3.addLast(new CustomClass(99));
         linkedDeque3.addLast(new SubClass(99)); // 不同类，但equals相等
 
-        assertTrue("含有继承类对象的ArrayDeque应该等于LinkedListDeque", arrayDeque3.equals(linkedDeque3));
-        assertTrue("含有继承类对象的LinkedListDeque应该等于ArrayDeque", linkedDeque3.equals(arrayDeque3));
+        assertTrue("含有继承类对象的ArrayDeque应该等于LinkedListDeque",
+                arrayDeque3.equals(linkedDeque3));
+        assertTrue("含有继承类对象的LinkedListDeque应该等于ArrayDeque",
+                linkedDeque3.equals(arrayDeque3));
 
         // 测试异构集合
         ArrayDeque<Object> arrayDeque4 = new ArrayDeque<>();
@@ -296,8 +325,10 @@ public class DequeEqualTest {
         linkedDeque4.addLast(123);
         linkedDeque4.addLast(new CustomClass(42));
 
-        assertTrue("含有混合类型的ArrayDeque应该等于LinkedListDeque", arrayDeque4.equals(linkedDeque4));
-        assertTrue("含有混合类型的LinkedListDeque应该等于ArrayDeque", linkedDeque4.equals(arrayDeque4));
+        assertTrue("含有混合类型的ArrayDeque应该等于LinkedListDeque",
+                arrayDeque4.equals(linkedDeque4));
+        assertTrue("含有混合类型的LinkedListDeque应该等于ArrayDeque",
+                linkedDeque4.equals(arrayDeque4));
     }
 
     @Test
@@ -306,8 +337,10 @@ public class DequeEqualTest {
         ArrayDeque<Integer> emptyArray = new ArrayDeque<>();
         LinkedListDeque<Integer> emptyLinked = new LinkedListDeque<>();
 
-        assertTrue("空的ArrayDeque应该等于空的LinkedListDeque", emptyArray.equals(emptyLinked));
-        assertTrue("空的LinkedListDeque应该等于空的ArrayDeque", emptyLinked.equals(emptyArray));
+        assertTrue("空的ArrayDeque应该等于空的LinkedListDeque",
+                emptyArray.equals(emptyLinked));
+        assertTrue("空的LinkedListDeque应该等于空的ArrayDeque",
+                emptyLinked.equals(emptyArray));
 
         // 只有一个元素的队列
         ArrayDeque<Integer> singleArray = new ArrayDeque<>();
@@ -316,8 +349,10 @@ public class DequeEqualTest {
         singleArray.addFirst(42);
         singleLinked.addFirst(42);
 
-        assertTrue("单元素ArrayDeque应该等于单元素LinkedListDeque", singleArray.equals(singleLinked));
-        assertTrue("单元素LinkedListDeque应该等于单元素ArrayDeque", singleLinked.equals(singleArray));
+        assertTrue("单元素ArrayDeque应该等于单元素LinkedListDeque",
+                singleArray.equals(singleLinked));
+        assertTrue("单元素LinkedListDeque应该等于单元素ArrayDeque",
+                singleLinked.equals(singleArray));
 
         // 一个包含null的队列
         ArrayDeque<Integer> nullArray = new ArrayDeque<>();
@@ -326,8 +361,10 @@ public class DequeEqualTest {
         nullArray.addFirst(null);
         nullLinked.addFirst(null);
 
-        assertTrue("含null的ArrayDeque应该等于含null的LinkedListDeque", nullArray.equals(nullLinked));
-        assertTrue("含null的LinkedListDeque应该等于含null的ArrayDeque", nullLinked.equals(nullArray));
+        assertTrue("含null的ArrayDeque应该等于含null的LinkedListDeque",
+                nullArray.equals(nullLinked));
+        assertTrue("含null的LinkedListDeque应该等于含null的ArrayDeque",
+                nullLinked.equals(nullArray));
     }
 
     @Test
@@ -356,8 +393,10 @@ public class DequeEqualTest {
             linkedListDeque.addLast(i);
         }
 
-        assertEquals("循环数组结构的ArrayDeque应该与LinkedListDeque相等", arrayDeque, linkedListDeque);
-        assertEquals("LinkedListDeque应该与循环数组结构的ArrayDeque相等", linkedListDeque, arrayDeque);
+        assertEquals("循环数组结构的ArrayDeque应该与LinkedListDeque相等",
+                arrayDeque, linkedListDeque);
+        assertEquals("LinkedListDeque应该与循环数组结构的ArrayDeque相等",
+                linkedListDeque, arrayDeque);
     }
 
     @Test
@@ -386,8 +425,10 @@ public class DequeEqualTest {
             linkedListDeque.addLast(i);
         }
 
-        assertEquals("经过扩容和缩容的ArrayDeque应该与LinkedListDeque相等", arrayDeque, linkedListDeque);
-        assertEquals("LinkedListDeque应该与经过扩容和缩容的ArrayDeque相等", linkedListDeque, arrayDeque);
+        assertEquals("经过扩容和缩容的ArrayDeque应该与LinkedListDeque相等",
+                arrayDeque, linkedListDeque);
+        assertEquals("LinkedListDeque应该与经过扩容和缩容的ArrayDeque相等",
+                linkedListDeque, arrayDeque);
     }
 
     @Test
@@ -420,8 +461,10 @@ public class DequeEqualTest {
         linkedListDeque.addFirst("E");
         linkedListDeque.addLast("F");
 
-        assertEquals("经过多次操作后的ArrayDeque应该与LinkedListDeque相等", arrayDeque, linkedListDeque);
-        assertEquals("经过多次操作后的LinkedListDeque应该与ArrayDeque相等", linkedListDeque, arrayDeque);
+        assertEquals("经过多次操作后的ArrayDeque应该与LinkedListDeque相等",
+                arrayDeque, linkedListDeque);
+        assertEquals("经过多次操作后的LinkedListDeque应该与ArrayDeque相等",
+                linkedListDeque, arrayDeque);
     }
 
     @Test
@@ -430,14 +473,18 @@ public class DequeEqualTest {
         class CustomObject {
             private final String value;
 
-            public CustomObject(String value) {
+            private CustomObject(String value) {
                 this.value = value;
             }
 
             @Override
             public boolean equals(Object o) {
-                if (this == o) return true;
-                if (o == null || getClass() != o.getClass()) return false;
+                if (this == o) {
+                    return true;
+                }
+                if (o == null || getClass() != o.getClass()) {
+                    return false;
+                }
                 CustomObject that = (CustomObject) o;
                 return value.equals(that.value);
             }
@@ -452,8 +499,10 @@ public class DequeEqualTest {
         linkedListDeque.addLast(new CustomObject("test1"));
         linkedListDeque.addLast(new CustomObject("test2"));
 
-        assertEquals("包含自定义对象的ArrayDeque应该与LinkedListDeque相等", arrayDeque, linkedListDeque);
-        assertEquals("包含自定义对象的LinkedListDeque应该与ArrayDeque相等", linkedListDeque, arrayDeque);
+        assertEquals("包含自定义对象的ArrayDeque应该与LinkedListDeque相等",
+                arrayDeque, linkedListDeque);
+        assertEquals("包含自定义对象的LinkedListDeque应该与ArrayDeque相等",
+                linkedListDeque, arrayDeque);
     }
 
     @Test
@@ -465,25 +514,39 @@ public class DequeEqualTest {
             private LinkedListDeque<T> delegate = new LinkedListDeque<>();
 
             @Override
-            public void addFirst(T item) { delegate.addFirst(item); }
+            public void addFirst(T item) {
+                delegate.addFirst(item);
+            }
 
             @Override
-            public void addLast(T item) { delegate.addLast(item); }
+            public void addLast(T item) {
+                delegate.addLast(item);
+            }
 
             @Override
-            public int size() { return delegate.size(); }
+            public int size() {
+                return delegate.size();
+            }
 
             @Override
-            public void printDeque() { delegate.printDeque(); }
+            public void printDeque() {
+                delegate.printDeque();
+            }
 
             @Override
-            public T removeFirst() { return delegate.removeFirst(); }
+            public T removeFirst() {
+                return delegate.removeFirst();
+            }
 
             @Override
-            public T removeLast() { return delegate.removeLast(); }
+            public T removeLast() {
+                return delegate.removeLast();
+            }
 
             @Override
-            public T get(int index) { return delegate.get(index); }
+            public T get(int index) {
+                return delegate.get(index);
+            }
 
             @Override
             public java.util.Iterator<T> iterator() {
@@ -492,10 +555,14 @@ public class DequeEqualTest {
                     private java.util.Iterator<T> it = delegate.iterator();
 
                     @Override
-                    public boolean hasNext() { return it.hasNext(); }
+                    public boolean hasNext() {
+                        return it.hasNext();
+                    }
 
                     @Override
-                    public T next() { return it.next(); }
+                    public T next() {
+                        return it.next();
+                    }
                 };
             }
         }
