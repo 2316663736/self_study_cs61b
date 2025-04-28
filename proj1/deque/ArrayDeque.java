@@ -38,13 +38,13 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
      *
      * @param NewSize 数组的新大小
      */
-    private void reszie(int new_size) {
-        T[] new_array = (T[]) new Object[new_size];
+    private void reszie(int NewSize) {
+        T[] NewArray = (T[]) new Object[NewSize];
         for (int i = 0; i < size; i++) {
-            new_array[i] = array[(front + i) % NowLen];
+            NewArray[i] = array[(front + i) % NowLen];
         }
-        array = new_array;
-        NowLen = new_size;
+        array = NewArray;
+        NowLen = NewSize;
         front = 0;
         rear = size;
     }
