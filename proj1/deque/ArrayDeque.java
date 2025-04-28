@@ -49,6 +49,7 @@ public class ArrayDeque<T>implements Deque<T> {
             reszie(Math.max((int)Math.round(now_len*expand_rate),min_expand_n+now_len));
     }
 
+    @Override
     public void addFirst(T item){
         expand_size();
         for(int i=size-1;i>=0;--i)
@@ -58,6 +59,7 @@ public class ArrayDeque<T>implements Deque<T> {
         array[0]=item;
     }
 
+    @Override
     public void addLast(T item){
         expand_size();
         array[size]=item;
@@ -73,6 +75,7 @@ public class ArrayDeque<T>implements Deque<T> {
 //    }
 
 
+    @Override
     public int size(){
         return size;
     }
@@ -80,6 +83,7 @@ public class ArrayDeque<T>implements Deque<T> {
      * 打印队列中从前到后的所有元素，以空格分隔。
      * 最后跟一个换行符。
      */
+    @Override
     public void printDeque(){
         Iterator<T> itr =iterator();
         while(itr.hasNext())
@@ -98,6 +102,7 @@ public class ArrayDeque<T>implements Deque<T> {
      *
      * @return 队列前端的元素，如果队列为空则返回null
      */
+    @Override
     public T removeFirst(){
         if(isEmpty())
             return null;
@@ -116,6 +121,7 @@ public class ArrayDeque<T>implements Deque<T> {
      *
      * @return 队列后端的元素，如果队列为空则返回null
      */
+    @Override
     public T removeLast(){
         if(isEmpty())
             return null;
@@ -126,6 +132,7 @@ public class ArrayDeque<T>implements Deque<T> {
         return item;
     }
 
+    @Override
     public T get(int index){
         if(index<0 || index>=size)
             return null;

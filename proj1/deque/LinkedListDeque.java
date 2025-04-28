@@ -64,6 +64,7 @@ public class LinkedListDeque<T> implements Deque<T> {
      *
      * @param item 要添加的元素
      */
+    @Override
     public void addFirst(T item){
         Node tem=new Node(item,head,head.next);
         head.next.prev=tem;
@@ -77,6 +78,7 @@ public class LinkedListDeque<T> implements Deque<T> {
      *
      * @param item 要添加的元素
      */
+    @Override
     public void addLast(T item){
         Node tem=new Node(item,tail.prev,tail);
         tail.prev.next=tem;
@@ -98,6 +100,7 @@ public class LinkedListDeque<T> implements Deque<T> {
      *
      * @return 队列中的元素数量
      */
+    @Override
     public int size(){
         return size;
     }
@@ -105,6 +108,7 @@ public class LinkedListDeque<T> implements Deque<T> {
      * 打印队列中从前到后的所有元素，以空格分隔。
      * 最后跟一个换行符。
      */
+    @Override
     public void printDeque(){
         Iterator<T> itr =iterator();
         while(itr.hasNext())
@@ -119,6 +123,7 @@ public class LinkedListDeque<T> implements Deque<T> {
      *
      * @return 队列前端的元素，如果队列为空则返回null
      */
+    @Override
     public T removeFirst(){
         if (size==0)
             return null;
@@ -136,6 +141,7 @@ public class LinkedListDeque<T> implements Deque<T> {
      *
      * @return 队列后端的元素，如果队列为空则返回null
      */
+    @Override
     public T removeLast(){
         if(size==0)
             return null;
@@ -153,6 +159,7 @@ public class LinkedListDeque<T> implements Deque<T> {
      * @param index 要获取的元素的索引
      * @return 指定位置的元素，如果索引无效则返回null
      */
+    @Override
     public T get(int index){
         if (index<0 || index>=size)
             return null;
