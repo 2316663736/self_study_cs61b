@@ -181,41 +181,71 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     }
     @Override
     public boolean equals(Object o) {
+        // 快速路径：是同一个对象
+        if (this == o) {
+            return true;
+        }
+
+        // 基本类型检查：必须是Deque
         if (!(o instanceof Deque)) {
             return false;
         }
-        if (((Deque<?>) o).size() != this.size()) {
+
+        // 大小检查
+        Deque<?> otherDeque = (Deque<?>) o;
+        if (this.size() != otherDeque.size()) {
             return false;
         }
 
+        // 空集合快速路径
         if (this.isEmpty()) {
             return true;
         }
-        Iterator<?> itr1 = null;
-        Iterator<T> itr2 = this.iterator();
 
-        if (o instanceof LinkedListDeque) {
-            itr1 = ((LinkedListDeque<?>) o).iterator();
-        } else if (o instanceof ArrayDeque) {
-            itr1 = ((ArrayDeque<?>) o).iterator();
-        }
-        if (itr1 == null) {
+        // 获取两个队列的迭代器
+        Iterator<T> thisIter = this.iterator();
+        Iterator<?> otherIter;
+
+        // 获取对方的迭代器，处理不同类型的情况
+        try {
+            if (o instanceof Iterable) {
+                otherIter = ((Iterable<?>) o).iterator();
+            } else {
+                // 这种情况实际上不应该发生，因为已经确认是Deque，而Deque继承了Iterable
+                return false;
+            }
+        } catch (Exception e) {
+            // 防御性编程：如果获取迭代器失败
             return false;
         }
-        while (itr1.hasNext() && itr2.hasNext()) {
-            // 修改这部分：不进行强制转换，直接调用 equals
-            //使用object
-            Object obj1 = itr1.next();
-            Object obj2 = itr2.next();
-            if (obj1 == null || obj2 == null) {
-                if (obj1 != obj2) {
+
+        // 逐个比较元素
+        while (thisIter.hasNext() && otherIter.hasNext()) {
+            Object thisElement = thisIter.next();
+            Object otherElement = otherIter.next();
+
+            // 两个都是null
+            if (thisElement == null && otherElement == null) {
+                continue;
+            }
+
+            // 只有一个是null
+            if (thisElement == null || otherElement == null) {
+                return false;
+            }
+
+            // 使用equals比较，捕获可能的异常
+            try {
+                if (!thisElement.equals(otherElement)) {
                     return false;
                 }
-            } else if (!obj1.equals(obj2)) {
+            } catch (Exception e) {
+                // 如果equals抛出异常，视为不相等
                 return false;
             }
         }
 
-        return true;
+        // 确保两个迭代器都已经遍历完毕
+        return !thisIter.hasNext() && !otherIter.hasNext();
     }
 }
