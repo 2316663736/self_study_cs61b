@@ -16,35 +16,35 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     /**最后一个元素之后的索引*/
     private int rear = 0;
     /** 数组的当前长度 */
-    private int NowLen;
+    private int nowLen;
     /** 缩小前数组的最小大小 */
-    private int MinSize = 16;
+    private int minSize = 16;
     /** 缩小数组的阈值比率 */
-    private double SmallRate = 0.25;
+    private double smallRate = 0.25;
     /** 扩展数组的比率 */
-    private double ExpandRate = 1.02;
+    private double expandRate = 1.02;
     /** 扩展时添加的最小元素数量 */
-    private int MinExpandNum = 2;
+    private int minExpandNum = 2;
     /**
      * 构造一个初始容量为8的空ArrayDeque。
      */
     public ArrayDeque() {
         size = 0;
-        NowLen = 8;
-        array = (T[]) new Object[NowLen];
+        nowLen = 8;
+        array = (T[]) new Object[nowLen];
     }
     /**
      * 将数组大小调整为新的大小。
      *
-     * @param NewSize 数组的新大小
+     * @param newSize 数组的新大小
      */
-    private void reszie(int NewSize) {
-        T[] NewArray = (T[]) new Object[NewSize];
+    private void reszie(int newSize) {
+        T[] newArray = (T[]) new Object[newSize];
         for (int i = 0; i < size; i++) {
-            NewArray[i] = array[(front + i) % NowLen];
+            newArray[i] = array[(front + i) % nowLen];
         }
-        array = NewArray;
-        NowLen = NewSize;
+        array = newArray;
+        nowLen = newSize;
         front = 0;
         rear = size;
     }
@@ -52,25 +52,25 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
      * 在必要时扩展数组大小。
      * 当元素数量达到数组容量时，根据扩展比率增加数组大小。
      */
-    private void ExpandSize() {
-        if(size == NowLen) {
-            reszie(Math.max(( (int) (Math.round(NowLen * ExpandRate))), MinExpandNum + NowLen));
+    private void expandSize() {
+        if (size == nowLen) {
+            reszie(Math.max(((int) (Math.round(nowLen * expandRate))), minExpandNum + nowLen));
         }
     }
 
     @Override
     public void addFirst(T item) {
-        ExpandSize();
-        front = (front - 1 + NowLen) % NowLen;
+        expandSize();
+        front = (front - 1 + nowLen) % nowLen;
         array[front] = item;
         size++;
     }
 
     @Override
     public void addLast(T item) {
-        ExpandSize();
+        expandSize();
         array[rear] = item;
-        rear = (rear + 1) % NowLen;
+        rear = (rear + 1) % nowLen;
         size++;
     }
 //    /**
@@ -94,15 +94,15 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     @Override
     public void printDeque() {
         Iterator<T> itr = iterator();
-        while(itr.hasNext()) {
+        while (itr.hasNext()) {
             System.out.print(itr.next() + " ");
         }
 
         System.out.println();
     }
-    private void SmallSize() {
-        if(NowLen >= MinSize && size <= (int) NowLen * SmallRate) {
-            reszie((int) (NowLen * SmallRate));
+    private void smallSize() {
+        if (nowLen >= minSize && size <= (int) nowLen * smallRate) {
+            reszie((int) (nowLen * smallRate));
         }
     }
 
@@ -114,14 +114,14 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
      */
     @Override
     public T removeFirst() {
-        if(isEmpty()) {
+        if (isEmpty()) {
             return null;
         }
         T item = array[front];
         array[front] = null;  // 帮助垃圾回收
-        front = (front + 1) % NowLen;  // 循环递增
+        front = (front + 1) % nowLen;  // 循环递增
         size--;
-        SmallSize();  // 保留现有的调整大小逻辑
+        smallSize();  // 保留现有的调整大小逻辑
         return item;
     }
 
@@ -133,24 +133,24 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
      */
     @Override
     public T removeLast() {
-        if(isEmpty()) {
+        if (isEmpty()) {
             return null;
         }
-        rear = (rear - 1 + NowLen) % NowLen;
+        rear = (rear - 1 + nowLen) % nowLen;
         T item = array[rear];
         array[rear] = null;  // 帮助垃圾回收
         size--;
-        SmallSize();
+        smallSize();
         return item;
     }
 
     @Override
     public T get(int index) {
-        if(index < 0 || index >= size) {
+        if (index < 0 || index >= size) {
             return null;
         }
 
-        return array[(front + index) % NowLen];
+        return array[(front + index) % nowLen];
     }
     /**
      * ArrayDeque的迭代器实现。
@@ -184,28 +184,25 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (!(o instanceof Deque)) {
             return false;
         }
-        if(((Deque<?>) o).size() != this.size()) {
+        if (((Deque<?>) o).size() != this.size()) {
             return false;
         }
 
-        if(this.isEmpty()) {
+        if (this.isEmpty()) {
             return true;
         }
         Iterator<?> itr1= null;
         Iterator<T> itr2 = this.iterator();
 
-        if(o instanceof LinkedListDeque) {
+        if (o instanceof LinkedListDeque) {
             itr1 = ((LinkedListDeque<?>) o).iterator();
-        }
-        else if(o instanceof ArrayDeque) {
+        } else if (o instanceof ArrayDeque) {
             itr1 = ((ArrayDeque<?>) o).iterator();
-        }
-
-        if(itr1 == null ) {
+        } if (itr1 == null ) {
             return false;
         }
-        while(itr1.hasNext() && itr2.hasNext()) {
-            if(!itr1.next().equals(itr2.next())) {
+        while (itr1.hasNext() && itr2.hasNext()) {
+            if (!itr1.next().equals(itr2.next())) {
                 return false;
             }
         }

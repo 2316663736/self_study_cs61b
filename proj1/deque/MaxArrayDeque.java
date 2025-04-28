@@ -17,22 +17,22 @@ public class MaxArrayDeque<T> extends ArrayDeque<T> {
 
 
 
-    public T max(Comparator<T> c){
+    public T max(Comparator<T> c) {
         return getT((Comparator<T>) c);
     }
 
     private T getT(Comparator<T> c) {
-        if(isEmpty()) {
+        if (isEmpty()) {
             return null;
         }
         Iterator<T> iter = iterator();
-        T now_max = iter.next();
-        while(iter.hasNext()) {
+        T nowMax = iter.next();
+        while (iter.hasNext()) {
             T next = iter.next();
-            if(c.compare(next, now_max) > 0) {
-                now_max = next;
+            if (c.compare(next, nowMax) > 0) {
+                nowMax = next;
             }
         }
-        return now_max;
+        return nowMax;
     }
 }

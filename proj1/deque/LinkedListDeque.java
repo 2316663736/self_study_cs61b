@@ -29,7 +29,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
          *
          * @param n 存储在此节点中的值
          */
-        public Node(T n) {
+        private Node(T n) {
             num = n;
         }
         /**
@@ -39,7 +39,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
          * @param p 前一个节点
          * @param q 后一个节点
          */
-        public Node(T n, Node p, Node q) {
+        private Node(T n, Node p, Node q) {
             num = n;
             prev = p;
             next = q;
@@ -66,7 +66,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
      */
     @Override
     public void addFirst(T item) {
-        Node tem = new Node(item , head , head.next);
+        Node tem = new Node(item, head, head.next);
         head.next.prev = tem;
         head.next = tem;
         size += 1;
@@ -111,7 +111,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     @Override
     public void printDeque() {
         Iterator<T> itr = iterator();
-        while(itr.hasNext()) {
+        while (itr.hasNext()) {
             System.out.print(itr.next() + " ");
         }
 
@@ -126,8 +126,9 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
      */
     @Override
     public T removeFirst() {
-        if (size == 0)
+        if (size == 0) {
             return null;
+        }
         T item = head.next.num;
         head.next = head.next.next;
         head.next.prev = head;
@@ -144,8 +145,9 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
      */
     @Override
     public T removeLast() {
-        if(size == 0)
+        if (size == 0) {
             return null;
+        }
         T item = tail.prev.num;
         tail.prev = tail.prev.prev;
         tail.prev.next = tail;
@@ -167,7 +169,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         }
         Iterator<T> itr = new LinkedListIterator();
         T item = null;
-        while(index >= 0) {
+        while (index >= 0) {
             item = itr.next();
             index -= 1;
         }
@@ -181,11 +183,11 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
      * @param index 到目标索引的剩余步数
      * @return 指定位置的元素
      */
-    private T RecursionGetIndex(Node n,int index) {
+    private T RecursionGetIndex(Node n, int index) {
         if (index == 0) {
             return n.num;
         }
-        return RecursionGetIndex(n.next,index-1);
+        return RecursionGetIndex(n.next, index-1);
     }
     /**
      * 使用递归方法获取给定索引处的元素。
@@ -195,16 +197,16 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
      * @return 指定位置的元素，如果索引无效则返回null
      */
     public T getRecursive(int index) {
-        if (index<0 || index >= size) {
+        if (index < 0 || index >= size) {
             return null;
         }
-        return RecursionGetIndex(head.next,index);
+        return RecursionGetIndex(head.next, index);
     }
 
     private class LinkedListIterator implements Iterator<T> {
-        Node current ;
-        public LinkedListIterator() {
-            current=head.next;
+        Node current;
+        private LinkedListIterator() {
+            current = head.next;
         }
         @Override
         public boolean hasNext() {
@@ -227,30 +229,29 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         if (!(o instanceof Deque)) {
             return false;
         }
-        if(((Deque<?>) o).size() != this.size()) {
+        if (((Deque<?>) o).size() != this.size()) {
             return false;
         }
 
-        if(this.isEmpty()) {
+        if (this.isEmpty()) {
             return true;
         }
 
-        Iterator<?> itr1= null;
+        Iterator<?> itr1 = null;
         Iterator<T> itr2 = this.iterator();
 
         if(o instanceof LinkedListDeque) {
             itr1 = ((LinkedListDeque<?>) o).iterator();
-        }
-        else if(o instanceof ArrayDeque) {
+        } else if (o instanceof ArrayDeque) {
             itr1 = ((ArrayDeque<?>) o).iterator();
         }
 
-        if(itr1 == null ) {
+        if (itr1 == null ) {
             return false;
         }
 
-        while(itr1.hasNext() && itr2.hasNext()) {
-            if(!itr1.next().equals(itr2.next())) {
+        while (itr1.hasNext() && itr2.hasNext()) {
+            if (!itr1.next().equals(itr2.next())) {
                 return false;
             }
         }
