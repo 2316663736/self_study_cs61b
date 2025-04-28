@@ -6,7 +6,7 @@ import java.util.Iterator;
  *
  * @param <T> 存储在队列中的元素类型
  */
-public class ArrayDeque<T> implements Deque<T> {
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     /** 存储元素的数组 */
     private T[] array;
     /** 队列中的元素数量 */

@@ -7,7 +7,7 @@ import java.util.Iterator;
  *
  * @param <T> 存储在队列中的元素类型
  */
-public class LinkedListDeque<T> implements Deque<T> {
+public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     /** 队列中的元素数量 */
     private int size;
     //head 和tail 始终指向固定的元素（即浪费两个元素空间，以求head和tail 不变）
