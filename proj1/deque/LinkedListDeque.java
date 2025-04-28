@@ -183,11 +183,11 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
      * @param index 到目标索引的剩余步数
      * @return 指定位置的元素
      */
-    private T RecursionGetIndex(Node n, int index) {
+    private T recursionGetIndex(Node n, int index) {
         if (index == 0) {
             return n.num;
         }
-        return RecursionGetIndex(n.next, index-1);
+        return recursionGetIndex(n.next, index - 1);
     }
     /**
      * 使用递归方法获取给定索引处的元素。
@@ -200,7 +200,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         if (index < 0 || index >= size) {
             return null;
         }
-        return RecursionGetIndex(head.next, index);
+        return recursionGetIndex(head.next, index);
     }
 
     private class LinkedListIterator implements Iterator<T> {
@@ -240,13 +240,13 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         Iterator<?> itr1 = null;
         Iterator<T> itr2 = this.iterator();
 
-        if(o instanceof LinkedListDeque) {
+        if (o instanceof LinkedListDeque) {
             itr1 = ((LinkedListDeque<?>) o).iterator();
         } else if (o instanceof ArrayDeque) {
             itr1 = ((ArrayDeque<?>) o).iterator();
         }
 
-        if (itr1 == null ) {
+        if (itr1 == null) {
             return false;
         }
 

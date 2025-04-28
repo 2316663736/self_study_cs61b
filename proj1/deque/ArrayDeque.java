@@ -191,7 +191,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (this.isEmpty()) {
             return true;
         }
-        Iterator<?> itr1= null;
+        Iterator<?> itr1 = null;
         Iterator<T> itr2 = this.iterator();
 
         if (o instanceof LinkedListDeque) {
@@ -199,7 +199,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         } else if (o instanceof ArrayDeque) {
             itr1 = ((ArrayDeque<?>) o).iterator();
         }
-        if (itr1 == null ) {
+        if (itr1 == null) {
             return false;
         }
         while (itr1.hasNext() && itr2.hasNext()) {
