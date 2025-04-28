@@ -9,91 +9,91 @@ import student.StudentArrayDeque;
 
 public class TestArrayDequeEC {
     @Test
-    public void test_with_no_message() {
+    public void testWithNoMessage() {
         StudentArrayDeque<Integer> sad = new StudentArrayDeque<>();
         ArrayDequeSolution<Integer> happy = new ArrayDequeSolution<>();
-        int N=1000;
-        for(int i=0;i<N;i++) {
-            int ops= StdRandom.uniform(0,3);
-            if(ops==0) {
+        int N = 1000;
+        for(int i = 0; i < N; i++) {
+            int ops = StdRandom.uniform(0,3);
+            if(ops == 0) {
                 sad.addFirst(i);
                 happy.addFirst(i);
             }
-            else if(ops==1) {
+            else if(ops == 1) {
                 sad.addLast(i);
                 happy.addLast(i);
             }
             else if (sad.isEmpty()||happy.isEmpty()) {
                 continue;
             }
-            else if(ops==2) {
-                int sad_first=sad.removeFirst();
-                int happy_first=happy.removeFirst();
-                assertEquals(sad_first,happy_first);
+            else if(ops == 2) {
+                int sadFirst = sad.removeFirst();
+                int happyFirst = happy.removeFirst();
+                assertEquals(sadFirst,happyFirst);
             }
-            else if(ops==3) {
-                int sad_last=sad.removeLast();
-                int happy_last=happy.removeLast();
-                assertEquals(sad_last,happy_last);
+            else if(ops == 3) {
+                int sadLast = sad.removeLast();
+                int happyLast = happy.removeLast();
+                assertEquals(sadLast,happyLast);
             }
-            int sad_size = sad.size();
-            int happy_size = happy.size();
-            assertEquals(sad_size,happy_size);
+            int sadSize = sad.size();
+            int happySize = happy.size();
+            assertEquals(sadSize,happySize);
         }
 
-        for(int i=0;i<N;i++) {
-            int num= StdRandom.uniform(0,sad.size());
-            int sad_num= sad.get(num);
-            int happy_num= happy.get(num);
-            assertEquals(sad_num,happy_num);
+        for(int i = 0;i < N;i++) {
+            int num = StdRandom.uniform(0,sad.size());
+            int sadNum = sad.get(num);
+            int happyNum = happy.get(num);
+            assertEquals(sadNum,happyNum);
         }
     }
     @Test
-    public void test_with_message() {
+    public void testWithMessage() {
         StudentArrayDeque<Integer> sad = new StudentArrayDeque<>();
         ArrayDequeSolution<Integer> happy = new ArrayDequeSolution<>();
-        int N=1000;
-        String msg="\n";
-        for(int i=0;i<N;i++) {
-            int ops= StdRandom.uniform(0,3);
-            if(ops==0) {
+        int N = 1000;
+        String msg = "";
+        for(int i = 0; i < N; i++) {
+            int ops = StdRandom.uniform(0,4);
+            if(ops == 0) {
                 sad.addFirst(i);
                 happy.addFirst(i);
-                msg+="addFirst("+i+")\n";
+                msg += "addFirst("+i+")\n";
             }
-            else if(ops==1) {
+            else if(ops == 1) {
                 sad.addLast(i);
                 happy.addLast(i);
-                msg+="addLast("+i+")\n";
+                msg += "addLast("+i+")\n";
             }
             else if (sad.isEmpty()||happy.isEmpty()) {
                 continue;
             }
-            else if(ops==2) {
-                int sad_first=sad.removeFirst();
-                int happy_first=happy.removeFirst();
-                msg+="removeFirst()\n";
-                assertEquals(msg,sad_first,happy_first);
+            else if(ops == 2) {
+                int sadFirst = sad.removeFirst();
+                int happyFirst = happy.removeFirst();
+                msg += "removeFirst()\n";
+                assertEquals(msg,sadFirst,happyFirst);
             }
-            else if(ops==3) {
-                int sad_last=sad.removeLast();
-                int happy_last=happy.removeLast();
-                msg+="removeLast()\n";
-                assertEquals(msg, sad_last,happy_last);
+            else if(ops == 3) {
+                int sadLast = sad.removeLast();
+                int happyLast = happy.removeLast();
+                msg += "removeLast()\n";
+                assertEquals(msg,happyLast ,sadLast);
             }
             //这个就不用了，会显得十分冗余
-//            int sad_size = sad.size();
-//            int happy_size = happy.size();
-//            msg+="size()\n";
-//            assertEquals(msg, sad_size,happy_size);
+//            int sadSize = sad.size();
+//            int happySize = happy.size();
+//            msg += "size()\n";
+//            assertEquals(msg,happySize, sadSize);
         }
 
-        for(int i=0;i<N;i++) {
-            int num= StdRandom.uniform(0,sad.size());
-            int sad_num= sad.get(num);
-            int happy_num= happy.get(num);
-            msg+="get("+num+")\n";
-            assertEquals(msg, sad_num,happy_num);
+        for(int i = 0; i < N;i++) {
+            int num = StdRandom.uniform(0,sad.size());
+            int sadNum = sad.get(num);
+            int happyNum = happy.get(num);
+            msg  +=  "get(" + num + ")\n";
+            assertEquals(msg, happyNum, sadNum);
         }
     }
 
