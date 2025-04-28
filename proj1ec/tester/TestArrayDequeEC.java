@@ -1,94 +1,64 @@
 package tester;
 
 import static org.junit.Assert.*;
-
-import edu.princeton.cs.introcs.StdRandom;
-import jh61b.junit.In;
 import org.junit.Test;
 import student.StudentArrayDeque;
+import edu.princeton.cs.introcs.StdRandom;
 
 public class TestArrayDequeEC {
-    @Test
-    public void testWithNoMessage() {
-        StudentArrayDeque<Integer> sad = new StudentArrayDeque<>();
-        ArrayDequeSolution<Integer> happy = new ArrayDequeSolution<>();
-        int N = 1000;
-        for(int i = 0; i < N; i++) {
-            int ops = StdRandom.uniform(0,3);
-            if(ops == 0) {
-                sad.addFirst(i);
-                happy.addFirst(i);
-            }
-            else if(ops == 1) {
-                sad.addLast(i);
-                happy.addLast(i);
-            }
-            else if (sad.isEmpty()||happy.isEmpty()) {
-                continue;
-            }
-            else if(ops == 2) {
-                int sadFirst = sad.removeFirst();
-                int happyFirst = happy.removeFirst();
-                assertEquals(sadFirst,happyFirst);
-            }
-            else if(ops == 3) {
-                int sadLast = sad.removeLast();
-                int happyLast = happy.removeLast();
-                assertEquals(sadLast,happyLast);
-            }
-            int sadSize = sad.size();
-            int happySize = happy.size();
-            assertEquals(sadSize,happySize);
-        }
 
-        for(int i = 0;i < N;i++) {
-            int num = StdRandom.uniform(0,sad.size());
-            int sadNum = sad.get(num);
-            int happyNum = happy.get(num);
-            assertEquals(sadNum,happyNum);
+    @Test
+    public void randomizedTest() {
+        StudentArrayDeque<Integer> studentDeque = new StudentArrayDeque<>();
+        ArrayDequeSolution<Integer> solutionDeque = new ArrayDequeSolution<>();
+
+        // 构建操作日志用于失败信息
+        StringBuilder operationLog = new StringBuilder();
+
+        int numOperations = 1000;
+        for (int i = 0; i < numOperations; i++) {
+            // 生成随机操作码：0-3
+            // 0: addFirst, 1: addLast, 2: removeFirst, 3: removeLast
+            int operationCode = StdRandom.uniform(0, 4);
+
+            // 如果执行添加操作，需要添加的值
+            Integer value = StdRandom.uniform(0, 100);
+
+            switch (operationCode) {
+                case 0:   // addFirst
+                    studentDeque.addFirst(value);
+                    solutionDeque.addFirst(value);
+                    operationLog.append("addFirst(").append(value).append(")\n");
+                    break;
+
+                case 1:   // addLast
+                    studentDeque.addLast(value);
+                    solutionDeque.addLast(value);
+                    operationLog.append("addLast(").append(value).append(")\n");
+                    break;
+
+                case 2:   // removeFirst - 仅在非空时执行
+                    if (!studentDeque.isEmpty() && !solutionDeque.isEmpty()) {
+                        Integer studentResult = studentDeque.removeFirst();
+                        Integer solutionResult = solutionDeque.removeFirst();
+                        operationLog.append("removeFirst()\n");
+                        assertEquals(operationLog.toString(), solutionResult, studentResult);
+                    }
+                    break;
+
+                case 3:   // removeLast - 仅在非空时执行
+                    if (!studentDeque.isEmpty() && !solutionDeque.isEmpty()) {
+                        Integer studentResult = studentDeque.removeLast();
+                        Integer solutionResult = solutionDeque.removeLast();
+                        operationLog.append("removeLast()\n");
+                        assertEquals(operationLog.toString(), solutionResult, studentResult);
+                    }
+                    break;
+            }
+
+            // 每次操作后检查大小是否匹配
+            assertEquals(operationLog.toString() + "size()\n",
+                    solutionDeque.size(), studentDeque.size());
         }
     }
-    @Test
-    public void testWithMessage() {
-        StudentArrayDeque<Integer> sad = new StudentArrayDeque<>();
-        ArrayDequeSolution<Integer> happy = new ArrayDequeSolution<>();
-        int N = 1000;
-        String msg = "";
-        for(int i = 0; i < N; i++) {
-            int ops = StdRandom.uniform(0,4);
-            if(ops == 0) {
-                sad.addFirst(i);
-                happy.addFirst(i);
-                msg += "addFirst("+i+")\n";
-            }
-            else if(ops == 1) {
-                sad.addLast(i);
-                happy.addLast(i);
-                msg += "addLast("+i+")\n";
-            }
-            else if (sad.isEmpty()||happy.isEmpty()) {
-                continue;
-            }
-            else if(ops == 2) {
-                int sadFirst = sad.removeFirst();
-                int happyFirst = happy.removeFirst();
-                msg += "removeFirst()\n";
-                assertEquals(msg,sadFirst,happyFirst);
-            }
-            else if(ops == 3) {
-                int sadLast = sad.removeLast();
-                int happyLast = happy.removeLast();
-                msg += "removeLast()\n";
-                assertEquals(msg,happyLast ,sadLast);
-            }
-            //这个就不用了，会显得十分冗余
-//            int sadSize = sad.size();
-//            int happySize = happy.size();
-//            msg += "size()\n";
-//            assertEquals(msg,happySize, sadSize);
-        }
-
-
-    }
-
 }
