@@ -21,9 +21,9 @@ public class LinkedListDeque<T> implements Deque<T> {
      * 包含元素值以及指向前一个和后一个节点的引用。
      */
     private class Node {
-        public T num;
-        public Node next;
-        public Node prev;
+        private final T num;
+        private Node next;
+        private Node prev;
         /**
          * 使用给定值创建新节点。
          *
@@ -55,7 +55,7 @@ public class LinkedListDeque<T> implements Deque<T> {
         tail = new Node(null);
         head.next = tail;
         tail.prev = head;
-        size=0;
+        size = 0;
     }
 
     /**
@@ -65,11 +65,11 @@ public class LinkedListDeque<T> implements Deque<T> {
      * @param item 要添加的元素
      */
     @Override
-    public void addFirst(T item){
-        Node tem=new Node(item,head,head.next);
-        head.next.prev=tem;
-        head.next=tem;
-        size+=1;
+    public void addFirst(T item) {
+        Node tem = new Node(item , head , head.next);
+        head.next.prev = tem;
+        head.next = tem;
+        size += 1;
     }
 
     /**
@@ -79,11 +79,11 @@ public class LinkedListDeque<T> implements Deque<T> {
      * @param item 要添加的元素
      */
     @Override
-    public void addLast(T item){
-        Node tem=new Node(item,tail.prev,tail);
-        tail.prev.next=tem;
-        tail.prev=tem;
-        size+=1;
+    public void addLast(T item) {
+        Node tem = new Node(item, tail.prev, tail);
+        tail.prev.next = tem;
+        tail.prev = tem;
+        size += 1;
     }
 //
 //    /**
@@ -91,8 +91,8 @@ public class LinkedListDeque<T> implements Deque<T> {
 //     *
 //     * @return 如果队列为空则返回true，否则返回false
 //     */
-//    public boolean isEmpty(){
-//        return size==0;
+//    public boolean isEmpty() {
+//        return size == 0;
 //    }
 
     /**
@@ -101,7 +101,7 @@ public class LinkedListDeque<T> implements Deque<T> {
      * @return 队列中的元素数量
      */
     @Override
-    public int size(){
+    public int size() {
         return size;
     }
     /**
@@ -109,10 +109,11 @@ public class LinkedListDeque<T> implements Deque<T> {
      * 最后跟一个换行符。
      */
     @Override
-    public void printDeque(){
-        Iterator<T> itr =iterator();
-        while(itr.hasNext())
-            System.out.print(itr.next()+" ");
+    public void printDeque() {
+        Iterator<T> itr = iterator();
+        while(itr.hasNext()) {
+            System.out.print(itr.next() + " ");
+        }
 
         System.out.println();
     }
@@ -124,13 +125,13 @@ public class LinkedListDeque<T> implements Deque<T> {
      * @return 队列前端的元素，如果队列为空则返回null
      */
     @Override
-    public T removeFirst(){
-        if (size==0)
+    public T removeFirst() {
+        if (size == 0)
             return null;
         T item = head.next.num;
-        head.next=head.next.next;
-        head.next.prev=head;
-        size-=1;
+        head.next = head.next.next;
+        head.next.prev = head;
+        size -= 1;
         return item;
     }
 
@@ -142,13 +143,13 @@ public class LinkedListDeque<T> implements Deque<T> {
      * @return 队列后端的元素，如果队列为空则返回null
      */
     @Override
-    public T removeLast(){
-        if(size==0)
+    public T removeLast() {
+        if(size == 0)
             return null;
         T item = tail.prev.num;
-        tail.prev=tail.prev.prev;
-        tail.prev.next=tail;
-        size-=1;
+        tail.prev = tail.prev.prev;
+        tail.prev.next = tail;
+        size -= 1;
         return item;
     }
 
@@ -160,14 +161,15 @@ public class LinkedListDeque<T> implements Deque<T> {
      * @return 指定位置的元素，如果索引无效则返回null
      */
     @Override
-    public T get(int index){
-        if (index<0 || index>=size)
+    public T get(int index) {
+        if (index < 0 || index >= size) {
             return null;
-        Iterator<T> itr=new LinkedListIterator();
-        T item=null;
-        while(index>=0) {
+        }
+        Iterator<T> itr = new LinkedListIterator();
+        T item = null;
+        while(index >= 0) {
             item = itr.next();
-            index-=1;
+            index -= 1;
         }
         return item;
     }
@@ -179,10 +181,11 @@ public class LinkedListDeque<T> implements Deque<T> {
      * @param index 到目标索引的剩余步数
      * @return 指定位置的元素
      */
-    private T Recursion_get_index(Node n,int index){
-        if (index==0)
+    private T RecursionGetIndex(Node n,int index) {
+        if (index == 0) {
             return n.num;
-        return Recursion_get_index(n.next,index-1);
+        }
+        return RecursionGetIndex(n.next,index-1);
     }
     /**
      * 使用递归方法获取给定索引处的元素。
@@ -191,46 +194,54 @@ public class LinkedListDeque<T> implements Deque<T> {
      * @param index 要获取的元素的索引
      * @return 指定位置的元素，如果索引无效则返回null
      */
-    public T getRecursive(int index){
-        if (index<0 || index>=size)
+    public T getRecursive(int index) {
+        if (index<0 || index >= size) {
             return null;
-        return Recursion_get_index(head.next,index);
+        }
+        return RecursionGetIndex(head.next,index);
     }
 
-    private class LinkedListIterator implements Iterator<T>{
+    private class LinkedListIterator implements Iterator<T> {
         Node current ;
         public LinkedListIterator() {
             current=head.next;
         }
         @Override
         public boolean hasNext() {
-            return current!=tail;
+            return current != tail;
         }
         @Override
         public T next() {
-            T item=current.num;
-            current=current.next;
+            T item = current.num;
+            current = current.next;
             return item;
         }
     }
 
-    public Iterator<T> iterator(){
+    public Iterator<T> iterator() {
         return new LinkedListIterator();
     }
-    @Override
-    public boolean equals(Object o){
-        if (!(o instanceof LinkedListDeque))
-            return false;
-        if(((LinkedListDeque<?>) o).size()!=this.size())
-            return false;
 
-        if(this.isEmpty())
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof LinkedListDeque)) {
+            return false;
+        }
+        if(((LinkedListDeque<?>) o).size() != this.size()) {
+            return false;
+        }
+
+        if(this.isEmpty()) {
             return true;
+        }
+
         Iterator<?> itr1= ((LinkedListDeque<?>) o).iterator();
-        Iterator<T> itr2=this.iterator();
+        Iterator<T> itr2 = this.iterator();
+
         while(itr1.hasNext() && itr2.hasNext()) {
-            if(!itr1.next().equals(itr2.next()))
+            if(!itr1.next().equals(itr2.next())) {
                 return false;
+            }
         }
 
         return true;
