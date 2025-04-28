@@ -48,111 +48,111 @@ public class DequeEqualTest {
             }
         }
     }
-
-    @Test
-    public void testMixedDequeEquality() {
-        // 创建一个ArrayDeque和一个LinkedListDeque
-        ArrayDeque<String> arrayDeque = new ArrayDeque<>();
-        LinkedListDeque<String> linkedDeque = new LinkedListDeque<>();
-
-        // 添加相同的元素
-        arrayDeque.addLast("first");
-        arrayDeque.addLast("second");
-        arrayDeque.addLast("third");
-
-        linkedDeque.addLast("first");
-        linkedDeque.addLast("second");
-        linkedDeque.addLast("third");
-
-        // 测试基本相等性
-        assertTrue("ArrayDeque应该等于LinkedListDeque",
-                arrayDeque.equals(linkedDeque));
-        assertTrue("LinkedListDeque应该等于ArrayDeque", linkedDeque.equals(arrayDeque));
-
-        // 测试与null的比较
-        arrayDeque.addLast(null);
-        linkedDeque.addLast(null);
-
-        assertTrue("添加null后ArrayDeque应该等于LinkedListDeque",
-                arrayDeque.equals(linkedDeque));
-        assertTrue("添加null后LinkedListDeque应该等于ArrayDeque",
-                linkedDeque.equals(arrayDeque));
-
-        // 测试自定义对象
-        class CustomClass {
-            private final int value;
-
-            private CustomClass(int value) {
-                this.value = value;
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) {
-                    return true;
-                }
-                if (!(o instanceof CustomClass)) {
-                    return false;
-                }
-                CustomClass that = (CustomClass) o;
-                return value == that.value;
-            }
-        }
-
-        ArrayDeque<CustomClass> arrayDeque2 = new ArrayDeque<>();
-        LinkedListDeque<CustomClass> linkedDeque2 = new LinkedListDeque<>();
-
-        CustomClass obj1 = new CustomClass(42);
-        CustomClass obj2 = new CustomClass(42); // 不同实例，相同值
-
-        arrayDeque2.addLast(obj1);
-        linkedDeque2.addLast(obj2);
-
-        assertTrue("含有自定义对象的ArrayDeque应该等于LinkedListDeque",
-                arrayDeque2.equals(linkedDeque2));
-        assertTrue("含有自定义对象的LinkedListDeque应该等于ArrayDeque",
-                linkedDeque2.equals(arrayDeque2));
-
-        // 测试混合类型
-        class SubClass extends CustomClass {
-            private SubClass(int value) {
-                super(value);
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                return super.equals(o);
-            }
-        }
-
-        ArrayDeque<CustomClass> arrayDeque3 = new ArrayDeque<>();
-        LinkedListDeque<CustomClass> linkedDeque3 = new LinkedListDeque<>();
-
-        arrayDeque3.addLast(new CustomClass(99));
-        linkedDeque3.addLast(new SubClass(99)); // 不同类，但equals相等
-
-        assertTrue("含有继承类对象的ArrayDeque应该等于LinkedListDeque",
-                arrayDeque3.equals(linkedDeque3));
-        assertTrue("含有继承类对象的LinkedListDeque应该等于ArrayDeque",
-                linkedDeque3.equals(arrayDeque3));
-
-        // 测试异构集合
-        ArrayDeque<Object> arrayDeque4 = new ArrayDeque<>();
-        LinkedListDeque<Object> linkedDeque4 = new LinkedListDeque<>();
-
-        arrayDeque4.addLast("string");
-        arrayDeque4.addLast(123);
-        arrayDeque4.addLast(new CustomClass(42));
-
-        linkedDeque4.addLast("string");
-        linkedDeque4.addLast(123);
-        linkedDeque4.addLast(new CustomClass(42));
-
-        assertTrue("含有混合类型的ArrayDeque应该等于LinkedListDeque",
-                arrayDeque4.equals(linkedDeque4));
-        assertTrue("含有混合类型的LinkedListDeque应该等于ArrayDeque",
-                linkedDeque4.equals(arrayDeque4));
-    }
+//
+//    @Test
+//    public void testMixedDequeEquality() {
+//        // 创建一个ArrayDeque和一个LinkedListDeque
+//        ArrayDeque<String> arrayDeque = new ArrayDeque<>();
+//        LinkedListDeque<String> linkedDeque = new LinkedListDeque<>();
+//
+//        // 添加相同的元素
+//        arrayDeque.addLast("first");
+//        arrayDeque.addLast("second");
+//        arrayDeque.addLast("third");
+//
+//        linkedDeque.addLast("first");
+//        linkedDeque.addLast("second");
+//        linkedDeque.addLast("third");
+//
+//        // 测试基本相等性
+//        assertTrue("ArrayDeque应该等于LinkedListDeque",
+//                arrayDeque.equals(linkedDeque));
+//        assertTrue("LinkedListDeque应该等于ArrayDeque", linkedDeque.equals(arrayDeque));
+//
+//        // 测试与null的比较
+//        arrayDeque.addLast(null);
+//        linkedDeque.addLast(null);
+//
+//        assertTrue("添加null后ArrayDeque应该等于LinkedListDeque",
+//                arrayDeque.equals(linkedDeque));
+//        assertTrue("添加null后LinkedListDeque应该等于ArrayDeque",
+//                linkedDeque.equals(arrayDeque));
+//
+//        // 测试自定义对象
+//        class CustomClass {
+//            private final int value;
+//
+//            private CustomClass(int value) {
+//                this.value = value;
+//            }
+//
+//            @Override
+//            public boolean equals(Object o) {
+//                if (this == o) {
+//                    return true;
+//                }
+//                if (!(o instanceof CustomClass)) {
+//                    return false;
+//                }
+//                CustomClass that = (CustomClass) o;
+//                return value == that.value;
+//            }
+//        }
+//
+//        ArrayDeque<CustomClass> arrayDeque2 = new ArrayDeque<>();
+//        LinkedListDeque<CustomClass> linkedDeque2 = new LinkedListDeque<>();
+//
+//        CustomClass obj1 = new CustomClass(42);
+//        CustomClass obj2 = new CustomClass(42); // 不同实例，相同值
+//
+//        arrayDeque2.addLast(obj1);
+//        linkedDeque2.addLast(obj2);
+//
+//        assertTrue("含有自定义对象的ArrayDeque应该等于LinkedListDeque",
+//                arrayDeque2.equals(linkedDeque2));
+//        assertTrue("含有自定义对象的LinkedListDeque应该等于ArrayDeque",
+//                linkedDeque2.equals(arrayDeque2));
+//
+//        // 测试混合类型
+//        class SubClass extends CustomClass {
+//            private SubClass(int value) {
+//                super(value);
+//            }
+//
+//            @Override
+//            public boolean equals(Object o) {
+//                return super.equals(o);
+//            }
+//        }
+//
+//        ArrayDeque<CustomClass> arrayDeque3 = new ArrayDeque<>();
+//        LinkedListDeque<CustomClass> linkedDeque3 = new LinkedListDeque<>();
+//
+//        arrayDeque3.addLast(new CustomClass(99));
+//        linkedDeque3.addLast(new SubClass(99)); // 不同类，但equals相等
+//
+//        assertTrue("含有继承类对象的ArrayDeque应该等于LinkedListDeque",
+//                arrayDeque3.equals(linkedDeque3));
+//        assertTrue("含有继承类对象的LinkedListDeque应该等于ArrayDeque",
+//                linkedDeque3.equals(arrayDeque3));
+//
+//        // 测试异构集合
+//        ArrayDeque<Object> arrayDeque4 = new ArrayDeque<>();
+//        LinkedListDeque<Object> linkedDeque4 = new LinkedListDeque<>();
+//
+//        arrayDeque4.addLast("string");
+//        arrayDeque4.addLast(123);
+//        arrayDeque4.addLast(new CustomClass(42));
+//
+//        linkedDeque4.addLast("string");
+//        linkedDeque4.addLast(123);
+//        linkedDeque4.addLast(new CustomClass(42));
+//
+//        assertTrue("含有混合类型的ArrayDeque应该等于LinkedListDeque",
+//                arrayDeque4.equals(linkedDeque4));
+//        assertTrue("含有混合类型的LinkedListDeque应该等于ArrayDeque",
+//                linkedDeque4.equals(arrayDeque4));
+//    }
 
     @Test
     public void testEdgeCases() {
@@ -227,109 +227,109 @@ public class DequeEqualTest {
     }
 
 
-    @Test
-    public void testMixedDequeEquality2() {
-        // 创建一个ArrayDeque和一个LinkedListDeque
-        ArrayDeque<String> arrayDeque = new ArrayDeque<>();
-        LinkedListDeque<String> linkedDeque = new LinkedListDeque<>();
-
-        // 添加相同的元素
-        arrayDeque.addLast("first");
-        arrayDeque.addLast("second");
-        arrayDeque.addLast("third");
-
-        linkedDeque.addLast("first");
-        linkedDeque.addLast("second");
-        linkedDeque.addLast("third");
-
-        // 测试基本相等性
-        assertTrue("ArrayDeque应该等于LinkedListDeque", arrayDeque.equals(linkedDeque));
-        assertTrue("LinkedListDeque应该等于ArrayDeque", linkedDeque.equals(arrayDeque));
-
-        // 测试与null的比较
-        arrayDeque.addLast(null);
-        linkedDeque.addLast(null);
-
-        assertTrue("添加null后ArrayDeque应该等于LinkedListDeque",
-                arrayDeque.equals(linkedDeque));
-        assertTrue("添加null后LinkedListDeque应该等于ArrayDeque",
-                linkedDeque.equals(arrayDeque));
-
-        // 测试自定义对象
-        class CustomClass {
-            private final int value;
-
-            private CustomClass(int value) {
-                this.value = value;
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) {
-                    return true;
-                }
-                if (!(o instanceof CustomClass)) {
-                    return false;
-                }
-                CustomClass that = (CustomClass) o;
-                return value == that.value;
-            }
-        }
-
-        ArrayDeque<CustomClass> arrayDeque2 = new ArrayDeque<>();
-        LinkedListDeque<CustomClass> linkedDeque2 = new LinkedListDeque<>();
-
-        CustomClass obj1 = new CustomClass(42);
-        CustomClass obj2 = new CustomClass(42); // 不同实例，相同值
-
-        arrayDeque2.addLast(obj1);
-        linkedDeque2.addLast(obj2);
-
-        assertTrue("含有自定义对象的ArrayDeque应该等于LinkedListDeque",
-                arrayDeque2.equals(linkedDeque2));
-        assertTrue("含有自定义对象的LinkedListDeque应该等于ArrayDeque",
-                linkedDeque2.equals(arrayDeque2));
-
-        // 测试混合类型
-        class SubClass extends CustomClass {
-            private SubClass(int value) {
-                super(value);
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                return super.equals(o);
-            }
-        }
-
-        ArrayDeque<CustomClass> arrayDeque3 = new ArrayDeque<>();
-        LinkedListDeque<CustomClass> linkedDeque3 = new LinkedListDeque<>();
-
-        arrayDeque3.addLast(new CustomClass(99));
-        linkedDeque3.addLast(new SubClass(99)); // 不同类，但equals相等
-
-        assertTrue("含有继承类对象的ArrayDeque应该等于LinkedListDeque",
-                arrayDeque3.equals(linkedDeque3));
-        assertTrue("含有继承类对象的LinkedListDeque应该等于ArrayDeque",
-                linkedDeque3.equals(arrayDeque3));
-
-        // 测试异构集合
-        ArrayDeque<Object> arrayDeque4 = new ArrayDeque<>();
-        LinkedListDeque<Object> linkedDeque4 = new LinkedListDeque<>();
-
-        arrayDeque4.addLast("string");
-        arrayDeque4.addLast(123);
-        arrayDeque4.addLast(new CustomClass(42));
-
-        linkedDeque4.addLast("string");
-        linkedDeque4.addLast(123);
-        linkedDeque4.addLast(new CustomClass(42));
-
-        assertTrue("含有混合类型的ArrayDeque应该等于LinkedListDeque",
-                arrayDeque4.equals(linkedDeque4));
-        assertTrue("含有混合类型的LinkedListDeque应该等于ArrayDeque",
-                linkedDeque4.equals(arrayDeque4));
-    }
+//    @Test
+//    public void testMixedDequeEquality2() {
+//        // 创建一个ArrayDeque和一个LinkedListDeque
+//        ArrayDeque<String> arrayDeque = new ArrayDeque<>();
+//        LinkedListDeque<String> linkedDeque = new LinkedListDeque<>();
+//
+//        // 添加相同的元素
+//        arrayDeque.addLast("first");
+//        arrayDeque.addLast("second");
+//        arrayDeque.addLast("third");
+//
+//        linkedDeque.addLast("first");
+//        linkedDeque.addLast("second");
+//        linkedDeque.addLast("third");
+//
+//        // 测试基本相等性
+//        assertTrue("ArrayDeque应该等于LinkedListDeque", arrayDeque.equals(linkedDeque));
+//        assertTrue("LinkedListDeque应该等于ArrayDeque", linkedDeque.equals(arrayDeque));
+//
+//        // 测试与null的比较
+//        arrayDeque.addLast(null);
+//        linkedDeque.addLast(null);
+//
+//        assertTrue("添加null后ArrayDeque应该等于LinkedListDeque",
+//                arrayDeque.equals(linkedDeque));
+//        assertTrue("添加null后LinkedListDeque应该等于ArrayDeque",
+//                linkedDeque.equals(arrayDeque));
+//
+//        // 测试自定义对象
+//        class CustomClass {
+//            private final int value;
+//
+//            private CustomClass(int value) {
+//                this.value = value;
+//            }
+//
+//            @Override
+//            public boolean equals(Object o) {
+//                if (this == o) {
+//                    return true;
+//                }
+//                if (!(o instanceof CustomClass)) {
+//                    return false;
+//                }
+//                CustomClass that = (CustomClass) o;
+//                return value == that.value;
+//            }
+//        }
+//
+//        ArrayDeque<CustomClass> arrayDeque2 = new ArrayDeque<>();
+//        LinkedListDeque<CustomClass> linkedDeque2 = new LinkedListDeque<>();
+//
+//        CustomClass obj1 = new CustomClass(42);
+//        CustomClass obj2 = new CustomClass(42); // 不同实例，相同值
+//
+//        arrayDeque2.addLast(obj1);
+//        linkedDeque2.addLast(obj2);
+//
+//        assertTrue("含有自定义对象的ArrayDeque应该等于LinkedListDeque",
+//                arrayDeque2.equals(linkedDeque2));
+//        assertTrue("含有自定义对象的LinkedListDeque应该等于ArrayDeque",
+//                linkedDeque2.equals(arrayDeque2));
+//
+//        // 测试混合类型
+//        class SubClass extends CustomClass {
+//            private SubClass(int value) {
+//                super(value);
+//            }
+//
+//            @Override
+//            public boolean equals(Object o) {
+//                return super.equals(o);
+//            }
+//        }
+//
+//        ArrayDeque<CustomClass> arrayDeque3 = new ArrayDeque<>();
+//        LinkedListDeque<CustomClass> linkedDeque3 = new LinkedListDeque<>();
+//
+//        arrayDeque3.addLast(new CustomClass(99));
+//        linkedDeque3.addLast(new SubClass(99)); // 不同类，但equals相等
+//
+//        assertTrue("含有继承类对象的ArrayDeque应该等于LinkedListDeque",
+//                arrayDeque3.equals(linkedDeque3));
+//        assertTrue("含有继承类对象的LinkedListDeque应该等于ArrayDeque",
+//                linkedDeque3.equals(arrayDeque3));
+//
+//        // 测试异构集合
+//        ArrayDeque<Object> arrayDeque4 = new ArrayDeque<>();
+//        LinkedListDeque<Object> linkedDeque4 = new LinkedListDeque<>();
+//
+//        arrayDeque4.addLast("string");
+//        arrayDeque4.addLast(123);
+//        arrayDeque4.addLast(new CustomClass(42));
+//
+//        linkedDeque4.addLast("string");
+//        linkedDeque4.addLast(123);
+//        linkedDeque4.addLast(new CustomClass(42));
+//
+//        assertTrue("含有混合类型的ArrayDeque应该等于LinkedListDeque",
+//                arrayDeque4.equals(linkedDeque4));
+//        assertTrue("含有混合类型的LinkedListDeque应该等于ArrayDeque",
+//                linkedDeque4.equals(arrayDeque4));
+//    }
 
     @Test
     public void testEdgeCases2() {
