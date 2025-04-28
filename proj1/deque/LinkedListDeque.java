@@ -251,7 +251,15 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         }
 
         while (itr1.hasNext() && itr2.hasNext()) {
-            if (!itr1.next().equals(itr2.next())) {
+            // 修改这部分：不进行强制转换，直接调用 equals
+            //使用object
+            Object obj1 = itr1.next();
+            Object obj2 = itr2.next();
+            if (obj1 == null || obj2 == null) {
+                if (obj1 != obj2) {
+                    return false;
+                }
+            } else if (!obj1.equals(obj2)) {
                 return false;
             }
         }

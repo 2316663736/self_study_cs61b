@@ -203,9 +203,15 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             return false;
         }
         while (itr1.hasNext() && itr2.hasNext()) {
-            T num1 = (T) itr1.next();
-            T num2 = (T) itr2.next();
-            if (!num1.equals(num2)) {
+            // 修改这部分：不进行强制转换，直接调用 equals
+            //使用object
+            Object obj1 = itr1.next();
+            Object obj2 = itr2.next();
+            if (obj1 == null || obj2 == null) {
+                if (obj1 != obj2) {
+                    return false;
+                }
+            } else if (!obj1.equals(obj2)) {
                 return false;
             }
         }
