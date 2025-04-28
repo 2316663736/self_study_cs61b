@@ -11,6 +11,10 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private T[] array;
     /** 队列中的元素数量 */
     private int size;
+    /** 第一个元素的索引 */
+    private int front = 0;
+    /**最后一个元素之后的索引*/
+    private int rear = 0;
     /** 数组的当前长度 */
     private int NowLen;
     /** 缩小前数组的最小大小 */
@@ -34,11 +38,15 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
      *
      * @param NewSize 数组的新大小
      */
-    private void reszie(int NewSize) {
-        T[] NewArray = (T[]) new Object[NewSize];
-        System.arraycopy(array, 0, NewArray, 0, size);
-        array = NewArray;
-        NowLen = NewSize;
+    private void reszie(int new_size) {
+        T[] new_array = (T[]) new Object[new_size];
+        for (int i = 0; i < size; i++) {
+            new_array[i] = array[(front + i) % NowLen];
+        }
+        array = new_array;
+        NowLen = new_size;
+        front = 0;
+        rear = size;
     }
     /**
      * 在必要时扩展数组大小。
@@ -53,18 +61,16 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     @Override
     public void addFirst(T item) {
         ExpandSize();
-        for(int i = size-1;i>=0;--i) {
-            array[i + 1] = array[i];
-        }
-
+        front = (front - 1 + NowLen) % NowLen;
+        array[front] = item;
         size++;
-        array[0] = item;
     }
 
     @Override
     public void addLast(T item) {
         ExpandSize();
-        array[size] = item;
+        array[rear] = item;
+        rear = (rear + 1) % NowLen;
         size++;
     }
 //    /**
@@ -111,13 +117,11 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if(isEmpty()) {
             return null;
         }
-        T item = array[0];
-        for(int i = 1;i < size;i++) {
-            array[i - 1] = array[i];
-        }
-        array[size - 1] = null;
+        T item = array[front];
+        array[front] = null;  // 帮助垃圾回收
+        front = (front + 1) % NowLen;  // 循环递增
         size--;
-        SmallSize();
+        SmallSize();  // 保留现有的调整大小逻辑
         return item;
     }
 
@@ -132,8 +136,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if(isEmpty()) {
             return null;
         }
-        T item = array[size - 1];
-        array[size - 1] = null;
+        rear = (rear - 1 + NowLen) % NowLen;
+        T item = array[rear];
+        array[rear] = null;  // 帮助垃圾回收
         size--;
         SmallSize();
         return item;
@@ -145,7 +150,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             return null;
         }
 
-        return array[index];
+        return array[(front + index) % NowLen];
     }
     /**
      * ArrayDeque的迭代器实现。
@@ -165,7 +170,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         }
         @Override
         public T next() {
-            T item = array[now];
+            T item = get(now);
             now++;
             return item;
         }
