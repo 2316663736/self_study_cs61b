@@ -7,7 +7,7 @@ import java.util.Iterator;
  *
  * @param <T> 存储在队列中的元素类型
  */
-public class LinkedListDeque<T> {
+public class LinkedListDeque<T> implements Deque<T> {
     /** 队列中的元素数量 */
     private int size;
     //head 和tail 始终指向固定的元素（即浪费两个元素空间，以求head和tail 不变）
@@ -83,15 +83,15 @@ public class LinkedListDeque<T> {
         tail.prev=tem;
         size+=1;
     }
-
-    /**
-     * 判断队列是否为空。
-     *
-     * @return 如果队列为空则返回true，否则返回false
-     */
-    public boolean isEmpty(){
-        return size==0;
-    }
+//
+//    /**
+//     * 判断队列是否为空。
+//     *
+//     * @return 如果队列为空则返回true，否则返回false
+//     */
+//    public boolean isEmpty(){
+//        return size==0;
+//    }
 
     /**
      * 返回队列中的元素数量。

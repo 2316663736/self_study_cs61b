@@ -6,7 +6,7 @@ import java.util.Iterator;
  *
  * @param <T> 存储在队列中的元素类型
  */
-public class ArrayDeque<T> {
+public class ArrayDeque<T>implements Deque<T> {
     /** 存储元素的数组 */
     private T[] array;
     /** 队列中的元素数量 */
@@ -51,7 +51,7 @@ public class ArrayDeque<T> {
 
     public void addFirst(T item){
         expand_size();
-        for(int i=0;i<size;i++)
+        for(int i=size-1;i>=0;--i)
             array[i+1]=array[i];
 
         size++;
@@ -63,14 +63,14 @@ public class ArrayDeque<T> {
         array[size]=item;
         size++;
     }
-    /**
-     * 判断队列是否为空。
-     *
-     * @return 如果队列为空则返回true，否则返回false
-     */
-    public boolean isEmpty(){
-        return size==0;
-    }
+//    /**
+//     * 判断队列是否为空。
+//     *
+//     * @return 如果队列为空则返回true，否则返回false
+//     */
+//    public boolean isEmpty(){
+//        return size==0;
+//    }
 
 
     public int size(){
