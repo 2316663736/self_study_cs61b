@@ -31,7 +31,7 @@ default:
 	$(RMAKE) PYTHON=$(PYTHON) check
 
 check:
-	@CLASSPATH=..:$(CLASSPATH) java -ea capers.Main >/dev/null 2>&1 || true
+	@CLASSPATH=..:$(CLASSPATH) java -ea capers.Main >nul 2>&1 || cmd /c exit 0
 	@echo "Testing application capers.Main..."
 	$(TESTER) $(TESTER_FLAGS) --src=$(SRCDIR) $(TESTS)
 
