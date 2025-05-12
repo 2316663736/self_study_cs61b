@@ -99,8 +99,18 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     @Override
     public Set<K> keySet() {
         Set<K> allKeys = new HashSet<>();
-
-        throw new UnsupportedOperationException();
+        Stack<inNode> stack = new Stack<>();
+        inNode now = root;
+        while (now != null || !stack.isEmpty()) {
+            while (now != null) {
+                stack.push(now);
+                now = now.left;
+            }
+            now = stack.pop();
+            allKeys.add(now.key);
+            now = now.right;
+        }
+        return allKeys;
     }
 
     /**
