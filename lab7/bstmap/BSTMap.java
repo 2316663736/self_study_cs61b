@@ -201,9 +201,31 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         }
     }
 
+    private class BSTMapiter implements Iterator<K> {
+        inNode now ;
+        Stack<inNode> stack ;
+        BSTMapiter() {
+            now = root;
+            stack = new Stack<>();
+        }
+        public boolean hasNext() {
+            return now != null || !stack.isEmpty();
+        }
+        public K next() {
+                while (now != null) {
+                    stack.push(now);
+                    now = now.left;
+                }
+                now = stack.pop();
+                K res = now.key;
+                now = now.right;
+                return res;
+        }
+
+    }
     @Override
     public Iterator<K> iterator() {
-        throw new UnsupportedOperationException();
+        return new BSTMapiter();
     }
 //    private void printInorderHelp(inNode the) {
 //        if (the == null) {
