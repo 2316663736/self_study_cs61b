@@ -1,6 +1,8 @@
 package bstmap;
 
 import static org.junit.Assert.*;
+
+import jh61b.junit.In;
 import org.junit.Test;
 
 /** Tests by Brendan Hu, Spring 2015, revised for 2016 by Josh Hug */
@@ -87,4 +89,43 @@ public class TestBSTMap {
         assertTrue(b.containsKey("hi"));
     }
 
+    @Test
+    public void printInOrderTest() {
+          BSTMap<String, Integer> b = new BSTMap<>();
+          b.put("ha", 1);
+          b.put("ge", -1);
+          b.put("ga", 1);
+          b.put("gb", 1);
+          b.put("hb", 2);
+          b.put("he", 5);
+          b.put("hf", 6);
+          b.put("hc", 3);
+          b.put("hd", 4);
+          b.printInOrder();
+    }
+
+    @Test
+    public void removeTest() {
+          BSTMap<String, Integer> b = new BSTMap<>();
+          b.put("hi", 12);
+          b.put("ge", -1);
+          b.put("ga", 1);
+          b.put("gb", 1);
+          b.put("hz", 2);
+          b.put("he", 5);
+          b.printInOrder();
+          assertTrue("希望此时Map中还有he",b.containsKey("he"));
+          int re = b.remove("he");
+          assertEquals("移除he，希望是5，实际是"+re,5,re);
+          System.out.println();
+          b.printInOrder();
+          assertFalse("希望此时Map中没有he",b.containsKey("he"));
+
+          assertTrue("希望此时Map中还有hi",b.containsKey("hi"));
+          re = b.remove("hi");
+          assertEquals("移除he，希望是12，实际是"+re,12,re);
+          System.out.println();
+          b.printInOrder();
+          assertFalse("希望此时Map中没有hi",b.containsKey("hi"));
+    }
 }

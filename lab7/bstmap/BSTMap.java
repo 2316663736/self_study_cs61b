@@ -1,7 +1,10 @@
 package bstmap;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Stack;
+
 
 public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
@@ -23,7 +26,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
      * @param key
      * @return 等于key的节点，没有就是取最接近的
      */
-    private inNode find (K key) {
+    private  inNode find (K key) {
         inNode pre = null;
         inNode now = root;
         while (now != null) {
@@ -95,15 +98,71 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
      * If you don't implement this, throw an UnsupportedOperationException. */
     @Override
     public Set<K> keySet() {
+        Set<K> allKeys = new HashSet<>();
+
         throw new UnsupportedOperationException();
     }
 
+    private inNode findLeftMax(inNode nowLeft) {
+        if (nowLeft == null) {
+            return null;
+        }
+        while (nowLeft.right != null) {
+            nowLeft = nowLeft.right;
+        }
+        return nowLeft;
+    }
+    private inNode findRightMin(inNode nowRight) {
+        if (nowRight == null) {
+            return null;
+        }
+        while (nowRight.left != null) {
+            nowRight = nowRight.left;
+        }
+        return nowRight;
+    }
     /* Removes the mapping for the specified key from this map if present.
      * Not required for Lab 7. If you don't implement this, throw an
      * UnsupportedOperationException. */
     @Override
     public V remove(K key) {
-        throw new UnsupportedOperationException();
+        inNode now = find(key);
+        if (now == null || now.key.compareTo(key) != 0) {
+            return null;
+        }
+        --size;
+        V value = now.value;
+        inNode pre = now;
+        inNode next ;
+        if (now.left != null) {
+            next = now.left;
+            while (next.right != null) {
+                pre = next;
+                next = next.right;
+            }
+            if (pre == now) {
+                pre.left = null;
+            } else {
+                pre.right = null;
+            }
+            now.key = next.key;
+            now.value = next.value;
+        } else if (now.right != null) {
+            next = now.right;
+            while (next.left != null) {
+                pre = next;
+                next = next.left;
+            }
+            if (pre == now) {
+                pre.right = null;
+            }  else {
+                pre.left = null;
+            }
+            now.key = next.key;
+            now.value = next.value;
+        }
+
+        return value;
     }
 
     /* Removes the entry for the specified key only if it is currently mapped to
@@ -117,5 +176,34 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     @Override
     public Iterator<K> iterator() {
         throw new UnsupportedOperationException();
+    }
+//    private void printInorderHelp(inNode the) {
+//        if (the == null) {
+//            return;
+//        }
+//        printInorderHelp(the.left);
+//        System.out.print(the.key + "<=>" + the.value + '\n');
+//        printInorderHelp(the.right);
+//    }
+//    public  void printInOrder() {
+//        if (root == null) {
+//            return;
+//        }
+//        printInorderHelp(root.left);
+//        System.out.print(root.key + "<=>" + root.value + '\n');
+//        printInorderHelp(root.right);
+//    }
+    public void printInOrder() {
+        inNode now = root;
+        Stack<inNode> stack = new Stack<>();
+        while (now != null || !stack.isEmpty()) {
+            while (now != null) {
+                stack.push(now);
+                now = now.left;
+            }
+            now = stack.pop();
+            System.out.print(now.key + "<=>" + now.value + "\n") ;
+            now = now.right;
+        }
     }
 }
