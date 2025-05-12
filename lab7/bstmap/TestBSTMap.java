@@ -105,7 +105,7 @@ public class TestBSTMap {
     }
 
     @Test
-    public void removeTest() {
+    public void removeOnlyRootTest() {
           BSTMap<String, Integer> b = new BSTMap<>();
           b.put("hi", 12);
           b.put("ge", -1);
@@ -114,18 +114,35 @@ public class TestBSTMap {
           b.put("hz", 2);
           b.put("he", 5);
           b.printInOrder();
-          assertTrue("希望此时Map中还有he",b.containsKey("he"));
-          int re = b.remove("he");
-          assertEquals("移除he，希望是5，实际是"+re,5,re);
-          System.out.println();
-          b.printInOrder();
-          assertFalse("希望此时Map中没有he",b.containsKey("he"));
-
           assertTrue("希望此时Map中还有hi",b.containsKey("hi"));
-          re = b.remove("hi");
+          int re = b.remove("hi");
           assertEquals("移除he，希望是12，实际是"+re,12,re);
           System.out.println();
           b.printInOrder();
           assertFalse("希望此时Map中没有hi",b.containsKey("hi"));
+    }
+    @Test
+    public void removeNoChildTest() {
+        BSTMap<String, Integer> b = new BSTMap<>();
+        b.put("hi", 12);
+        b.put("ge", -1);
+        b.put("ga", 1);
+        b.put("gb", 1);
+        b.put("hz", 2);
+        b.put("he", 5);
+        b.printInOrder();
+        assertTrue("希望此时Map中还有he",b.containsKey("he"));
+        int re = b.remove("he");
+        assertEquals("移除he，希望是5，实际是"+re,5,re);
+        System.out.println();
+        b.printInOrder();
+        assertFalse("希望此时Map中没有he",b.containsKey("he"));
+
+        assertTrue("希望此时Map中还有hi",b.containsKey("hi"));
+        re = b.remove("hi");
+        assertEquals("移除he，希望是12，实际是"+re,12,re);
+        System.out.println();
+        b.printInOrder();
+        assertFalse("希望此时Map中没有hi",b.containsKey("hi"));
     }
 }

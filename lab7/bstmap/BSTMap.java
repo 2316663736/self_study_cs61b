@@ -103,23 +103,25 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         throw new UnsupportedOperationException();
     }
 
-    private inNode findLeftMax(inNode nowLeft) {
-        if (nowLeft == null) {
-            return null;
+    /**
+     * @param key
+     * @return 找到的，左/右孩子索引是key的节点
+     */
+    private inNode getFather(K key) {
+        inNode pre = null;
+        inNode now = root;
+        while (now != null) {
+            if (now.key.compareTo(key) == 0) {
+                return pre;
+            } else if (now.key.compareTo(key) < 0) {
+                pre = now;
+                now = now.right;
+            } else {
+                pre = now;
+                now = now.left;
+            }
         }
-        while (nowLeft.right != null) {
-            nowLeft = nowLeft.right;
-        }
-        return nowLeft;
-    }
-    private inNode findRightMin(inNode nowRight) {
-        if (nowRight == null) {
-            return null;
-        }
-        while (nowRight.left != null) {
-            nowRight = nowRight.left;
-        }
-        return nowRight;
+        return null;
     }
     /* Removes the mapping for the specified key from this map if present.
      * Not required for Lab 7. If you don't implement this, throw an
@@ -160,6 +162,17 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
             }
             now.key = next.key;
             now.value = next.value;
+        } else {
+            inNode father = getFather(key);
+            if (father == null) {//说明now是root节点
+                assert size == 0 ;
+                root = null;
+            } else if (father.left == now) {
+                father.left = null;
+            } else {
+                father.right = null;
+            }
+
         }
 
         return value;
@@ -170,7 +183,12 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
      * throw an UnsupportedOperationException.*/
     @Override
     public V remove(K key, V value) {
-        throw new UnsupportedOperationException();
+        inNode now = find(key);
+        if (now != null && now.key.compareTo(key) == 0 && now.value.equals(value)) {
+            return remove(key);
+        } else {
+            return null;
+        }
     }
 
     @Override
