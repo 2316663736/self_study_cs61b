@@ -145,4 +145,69 @@ public class TestBSTMap {
         b.printInOrder();
         assertFalse("希望此时Map中没有hi",b.containsKey("hi"));
     }
+    @Test
+    public void testRemoveComprehensive() {
+        BSTMap<Integer, String> b = new BSTMap<>();
+
+        // 构建树结构:
+        //        10
+        //       /  \
+        //      5    15
+        //     / \   / \
+        //    3   7 12  20
+        //   /       \
+        //  1        13
+
+        b.put(10, "十");
+        b.put(5, "五");
+        b.put(15, "十五");
+        b.put(3, "三");
+        b.put(7, "七");
+        b.put(12, "十二");
+        b.put(20, "二十");
+        b.put(1, "一");
+        b.put(13, "十三");
+
+        assertEquals(9, b.size());
+
+        // 测试1: 删除叶子节点
+        String result1 = b.remove(1);
+        assertEquals("一", result1);
+        assertFalse(b.containsKey(1));
+        assertEquals(8, b.size());
+
+        // 测试2: 删除只有一个子节点的节点
+        String result2 = b.remove(3);
+        assertEquals("三", result2);
+        assertFalse(b.containsKey(3));
+        assertTrue(b.containsKey(5)); // 确保父节点仍然存在
+        assertEquals(7, b.size());
+
+        // 测试3: 删除有两个子节点的节点
+        String result3 = b.remove(15);
+        assertEquals("十五", result3);
+        assertFalse(b.containsKey(15));
+        assertTrue(b.containsKey(12)); // 确保子节点被保留
+        assertTrue(b.containsKey(20)); // 确保子节点被保留
+        assertEquals(6, b.size());
+
+        // 测试4: 删除根节点
+        String result4 = b.remove(10);
+        assertEquals("十", result4);
+        assertFalse(b.containsKey(10));
+        assertEquals(5, b.size());
+
+        // 测试5: 删除不存在的键
+        String result5 = b.remove(100);
+        assertNull(result5);
+        assertEquals(5, b.size());
+
+        // 测试6: 连续删除所有节点
+        b.remove(5);
+        b.remove(7);
+        b.remove(12);
+        b.remove(13);
+        b.remove(20);
+        assertEquals(0, b.size());
+    }
 }
