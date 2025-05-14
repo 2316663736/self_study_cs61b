@@ -29,9 +29,9 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     /* Instance Variables */
     private Collection<Node>[] buckets;
     // You should probably define some more!
-    int size;
-    double loadFactor ;
-    int iniSize;
+    private int size;
+    private double loadFactor ;
+    private int iniSize;
 
     /** Constructors */
     public MyHashMap() {
