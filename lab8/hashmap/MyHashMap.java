@@ -205,21 +205,10 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     public V remove(K key, V value) {
         throw new UnsupportedOperationException();
     }
-    private class  HashMapIter implements Iterator<K> {
-        Iterator<K> iter;
-        HashMapIter() {
-            iter = keySet().iterator();
-        }
-        public boolean hasNext() {
-            return iter.hasNext();
-        }
-        public K next() {
-            return iter.next();
-        }
-    }
+
     @Override
     public Iterator<K> iterator() {
-        return new HashMapIter();
+        return  keySet().iterator();
     }
 
 }
