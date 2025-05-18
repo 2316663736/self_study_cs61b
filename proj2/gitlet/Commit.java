@@ -52,10 +52,14 @@ public class Commit implements Dumpable {
      * @param message 提交信息
      * @param father 父提交
      */
-    public Commit(String message, String father) {
+    public Commit(String message, String father, Commit lastCommit) {
         this.message = message;
         this.date = new Date();
         this.father = father;
+        if (lastCommit.files == null) {
+            return;
+        }
+        this.files = lastCommit.files;
     }
 
     /**
@@ -75,7 +79,7 @@ public class Commit implements Dumpable {
      * @param father 父提交（当前所在的分支）
      * @param merge 父提交（被合并进来的分支）
      */
-    public Commit(String message, String father,String merge) {
+    public Commit(String message, String father, String merge) {
         this.message = message;
         this.date = new Date();
         this.father = father;
@@ -93,6 +97,13 @@ public class Commit implements Dumpable {
         files.put(key, value);
     }
 
+
+    public String remove(String key) {
+        if (files == null) {
+            return null;
+        }
+        return files.remove(key);
+    }
     /**
      * 输出当前commit的信息，可以用于输出log或者debug
      */
@@ -124,6 +135,10 @@ public class Commit implements Dumpable {
     public  void writeCommit(File file) {
         Tools.createFile(file);
         Utils.writeObject(file, this);
+    }
+
+    public static Commit readCommit(File file) {
+        return Utils.readObject(file, Commit.class);
     }
 
 }

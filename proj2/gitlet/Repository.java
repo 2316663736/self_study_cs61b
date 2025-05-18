@@ -1,5 +1,7 @@
 package gitlet;
 
+import org.checkerframework.checker.units.qual.C;
+
 import java.io.File;
 import java.util.Date;
 
@@ -80,13 +82,14 @@ public class Repository {
         Tools.writeContent(target, cont);
     }
     public static void commit(String msg) {
-        File[] files = GITLET_TEM_DIR.listFiles();
-        if (files == null) {
+        File[] files = GITLET_TEM_DIR.listFiles(File::isFile);
+        if (files == null || files.length == 0) {
             throw new GitletException("No changes added to the commit." );
         }
 
         String Head = readHead();
-        Commit commit = new Commit(msg, Head.substring(0,Utils.UID_LENGTH));
+        Commit lastCommit = Commit.readCommit(Tools.getObjectFile(Head.substring(0, UID_LENGTH), GITLET_FILE_DIR));
+        Commit commit = new Commit(msg, Head.substring(0,Utils.UID_LENGTH), lastCommit);
         File branchName = Utils.join(GITLET_BRANCHES_DIR,Head.substring(Utils.UID_LENGTH));
         Branch branch = Branch.readBranch(branchName);
         //写入文件,并清空tem
