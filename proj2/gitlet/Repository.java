@@ -1,6 +1,8 @@
 package gitlet;
 
 import java.io.File;
+import java.util.Date;
+
 import static gitlet.Utils.*;
 
 // : any imports you need here
@@ -34,6 +36,10 @@ public class Repository {
      * 存储分支，每个子文件夹都是一个分支（文件夹名字是分支名）
      */
     public static final File GITLET_BRANCHES_DIR = new File(GITLET_DIR, "branches");
+    /**
+     * 默认的branch
+     */
+    public static final String GITLET_BRANCH_DEFAULT = "master";
 
     /**
      * 指向当前所在位置，前40位存储一个sha-1值，后面存储branch的名字
@@ -43,11 +49,25 @@ public class Repository {
     /**
      * 暂存文件，在这个目录下，名字就是文件名，内容是文件内容
      */
-    public static final File GITLET_TEM = new File(GITLET_DIR, "tem");
+    public static final File GITLET_TEM_DIR = new File(GITLET_DIR, "tem");
 
     /*  fill in the rest of this class. */
     public static void init() {
+        if (gitletExist()) {
+            throw new GitletException("A Gitlet version-control system already exists in the current directory.");
+        }
+        Commit init = new Commit("initial commit", new Date(0), null);
+        String commitId = init.toString();
+        Branch master = new Branch(commitId);
+        String headIn = commitId + GITLET_BRANCH_DEFAULT;
 
+        tool.createDir(GITLET_DIR);
+        tool.createDir(GITLET_BRANCHES_DIR);
+        tool.createDir(GITLET_FILE_DIR);
+        tool.createDir(GITLET_TEM_DIR);
+        master.writeBranch(Utils.join(GITLET_BRANCHES_DIR, GITLET_BRANCH_DEFAULT));
+        init.writeCommit(tool.getObjectFile(commitId, GITLET_FILE_DIR));
+        Utils.writeContents(GITLET_HEAD, headIn);
     }
 
     public static void add(String fileName) {
@@ -95,5 +115,21 @@ public class Repository {
 
     public static void merge(String branchName) {
 
+    }
+
+    /**
+     * 返回.gitlet目录是否存在
+     * @return 如果.gitlet存在则返回true，反之false
+     */
+    private static boolean gitletExist() {
+        return GITLET_DIR.exists();
+    }
+    /**
+     * 检查.gitlet目录是否存在，与上面的区别在于，如果不存在，会直接报错
+     */
+    private static void checkGitlet() {
+        if (!gitletExist()) {
+            throw new GitletException("Gitlet does not exist.");
+        }
     }
 }

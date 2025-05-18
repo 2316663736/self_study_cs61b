@@ -4,6 +4,7 @@ package gitlet;
 
 
 
+import java.io.File;
 import java.util.Date; // : You'll likely use this in this class
 import java.util.HashMap;
 import java.util.Map;
@@ -105,7 +106,7 @@ public class Commit implements Dumpable {
         System.out.println("===");
         System.out.println("commit " + Utils.sha1((Object) Utils.serialize(this)));
         if (merge != null) {
-            System.out.println("Merge: " + getFirstSevenChars(father) + " " + getFirstSevenChars(merge));
+            System.out.println("Merge: " + father.substring(0,7) + " " + merge.substring(0,7));
         }
         System.out.println(formattedDate);
         System.out.println(message);
@@ -113,14 +114,16 @@ public class Commit implements Dumpable {
     }
 
     /**
-     * @param str 输入的字符串
-     * @return 截取输入字符串前七位并返回，不足七位则全部返回
+     * @return 返回这个commit的sha-1值
      */
-    private  static String getFirstSevenChars(String str) {
-        if (str == null) {
-            return "";
-        }
-        return str.length() < 7 ? str : str.substring(0, 7);
+    @Override
+    public String toString() {
+        return Utils.sha1((Object) Utils.serialize(this));
+    }
+
+    public  void writeCommit(File file) {
+        tool.createFile(file);
+        Utils.writeObject(file, this);
     }
 
 }

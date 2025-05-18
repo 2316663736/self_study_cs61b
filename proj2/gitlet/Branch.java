@@ -1,9 +1,10 @@
 package gitlet;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class branch implements Dumpable {
+public class Branch implements Dumpable {
     /**
      * 存储当前branch的一个历史提交，从0到最后，代表由旧到新
      */
@@ -12,12 +13,15 @@ public class branch implements Dumpable {
     /**
      * 创建一个新的，空的branch
      */
-    public branch() {
+    public Branch() {
         allID = new ArrayList<String>();
     }
+    public Branch(String init) {
+        this();
+        this.add(init);
+    }
 
-
-    public branch(branch other) {
+    public Branch(Branch other) {
         this.allID = other.allID;
     }
     public void add(String id) {
@@ -32,10 +36,21 @@ public class branch implements Dumpable {
             System.out.println(allID.get(i));
         }
     }
-    public static branch readBranch(String branchName) {
-        return Utils.readObject(Utils.join(Repository.GITLET_BRANCHES_DIR,branchName), branch.class);
+    /**
+     * 从文件读取Branch对象
+     * @param file 包含Branch对象的文件
+     * @return 读取的Branch对象
+     */
+    public static Branch readBranch(File file) {
+        return Utils.readObject(file, Branch.class);
     }
-    public void writeBranch(String branchName) {
-        Utils.writeObject(Utils.join(Repository.GITLET_BRANCHES_DIR, branchName), this);
+
+    /**
+     * 将当前Branch对象写入文件
+     * @param file 要写入的文件
+     */
+    public void writeBranch(File file) {
+        tool.createFile(file);
+        Utils.writeObject(file, this);
     }
 }
