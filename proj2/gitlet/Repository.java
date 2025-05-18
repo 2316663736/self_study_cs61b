@@ -32,12 +32,12 @@ public class Repository {
      * 存储所有文件数据，包括需要的文件，commit信息(除了branch信息单独存储)。
      * 使用sha-1作为所有查找，前两位作为目录，后面作为文件名（参考实际git）
      */
-    public static final File GITLET_FILE_DIR = new File(GITLET_DIR, "file");
+    public static final File GITLET_FILE_DIR = Utils.join(GITLET_DIR, "file");
 
     /**
      * 存储分支，每个子文件夹都是一个分支（文件夹名字是分支名）
      */
-    public static final File GITLET_BRANCHES_DIR = new File(GITLET_DIR, "branches");
+    public static final File GITLET_BRANCHES_DIR = Utils.join(GITLET_DIR, "branches");
     /**
      * 默认的branch
      */
@@ -46,12 +46,17 @@ public class Repository {
     /**
      * 指向当前所在位置，前40位存储一个sha-1值，后面存储branch的名字
      */
-    public static final File GITLET_HEAD = new File(GITLET_DIR, "head");
+    public static final File GITLET_HEAD = Utils.join(GITLET_DIR, "head");
 
     /**
      * 暂存文件，在这个目录下，名字就是文件名，内容是文件内容
      */
-    public static final File GITLET_TEM_DIR = new File(GITLET_DIR, "tem");
+    public static final File GITLET_TEM_DIR = Utils.join(GITLET_DIR, "tem");
+
+    /**
+     * 暂存目录下的即将被取消跟踪的文件
+     */
+    public static final File GITLET_TEM_DIR_DELETE = Utils.join(GITLET_TEM_DIR,"delete");
 
     /*  fill in the rest of this class. */
     public static void init() {
@@ -66,7 +71,7 @@ public class Repository {
         Tools.createDir(GITLET_DIR);
         Tools.createDir(GITLET_BRANCHES_DIR);
         Tools.createDir(GITLET_FILE_DIR);
-        Tools.createDir(GITLET_TEM_DIR);
+        StagingArea.init();
         master.writeBranch(Utils.join(GITLET_BRANCHES_DIR, GITLET_BRANCH_DEFAULT));
         init.writeCommit(Tools.getObjectFile(commitId, GITLET_FILE_DIR));
         Utils.writeContents(GITLET_HEAD, headIn);
@@ -77,9 +82,7 @@ public class Repository {
         if (!file.exists()) {
             throw new GitletException("File does not exist.");
         }
-        byte[] cont = Utils.readContents(file);
-        File target = new File(GITLET_TEM_DIR, fileName);
-        Tools.writeContent(target, cont);
+        StagingArea.addStagingArea(file);
     }
     public static void commit(String msg) {
         File[] files = GITLET_TEM_DIR.listFiles(File::isFile);
@@ -93,12 +96,7 @@ public class Repository {
         File branchName = Utils.join(GITLET_BRANCHES_DIR,Head.substring(Utils.UID_LENGTH));
         Branch branch = Branch.readBranch(branchName);
         //写入文件,并清空tem
-        for (File file : files) {
-            byte[] cont = Utils.readContents(file);
-            Tools.writeContent(Tools.getObjectFile(Utils.sha1((Object) cont), GITLET_FILE_DIR), cont);
-            commit.put(file.getName(), Utils.sha1((Object) cont));
-            file.delete();
-        }
+        commit = StagingArea.updateCommit(commit);
         //写入commit
         commit.writeCommit(Tools.getObjectFile(commit.toString(), GITLET_FILE_DIR));
         //更新head
@@ -108,7 +106,18 @@ public class Repository {
         branch.writeBranch(branchName);
     }
     public static void rm(String fileName) {
-
+        boolean find = false;
+        File file = Utils.join(CWD, fileName);
+        String Head = readHead();
+        Commit commit = Commit.readCommit(Tools.getObjectFile(Head.substring(0, UID_LENGTH), GITLET_FILE_DIR));
+        if (commit.fileExists(fileName)) {
+            StagingArea.addStagingAreaDelete(file);
+            find = true;
+        }
+        find = StagingArea.removeStagingArea(file) || find;
+        if (!find) {
+            throw new GitletException("No reason to remove the file.");
+        }
     }
     public static void log() {
 

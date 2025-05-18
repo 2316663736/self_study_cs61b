@@ -104,6 +104,13 @@ public class Commit implements Dumpable {
         }
         return files.remove(key);
     }
+
+    public boolean fileExists(String key) {
+        if (files == null) {
+            return false;
+        }
+        return files.containsKey(key);
+    }
     /**
      * 输出当前commit的信息，可以用于输出log或者debug
      */
