@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class tool {
+public class Tools {
 
 
 
@@ -45,7 +45,7 @@ public class tool {
         }
 
         // 检查长度是否为40（完整SHA-1）
-        if (strict && s.length() != 40) {
+        if (strict && s.length() != Utils.UID_LENGTH) {
             return false;
         }
 
@@ -67,7 +67,7 @@ public class tool {
         shaPrefix = shaPrefix.toLowerCase();
 
         // 如果已经是完整的SHA-1，直接检查是否存在
-        if (shaPrefix.length() == 40) {
+        if (shaPrefix.length() == Utils.UID_LENGTH) {
             File objFile = getObjectFile(shaPrefix, FILE_DIR);
             return objFile.exists() ? shaPrefix : null;
         }

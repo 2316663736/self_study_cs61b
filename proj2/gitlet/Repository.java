@@ -61,12 +61,12 @@ public class Repository {
         Branch master = new Branch(commitId);
         String headIn = commitId + GITLET_BRANCH_DEFAULT;
 
-        tool.createDir(GITLET_DIR);
-        tool.createDir(GITLET_BRANCHES_DIR);
-        tool.createDir(GITLET_FILE_DIR);
-        tool.createDir(GITLET_TEM_DIR);
+        Tools.createDir(GITLET_DIR);
+        Tools.createDir(GITLET_BRANCHES_DIR);
+        Tools.createDir(GITLET_FILE_DIR);
+        Tools.createDir(GITLET_TEM_DIR);
         master.writeBranch(Utils.join(GITLET_BRANCHES_DIR, GITLET_BRANCH_DEFAULT));
-        init.writeCommit(tool.getObjectFile(commitId, GITLET_FILE_DIR));
+        init.writeCommit(Tools.getObjectFile(commitId, GITLET_FILE_DIR));
         Utils.writeContents(GITLET_HEAD, headIn);
     }
 
@@ -77,10 +77,32 @@ public class Repository {
         }
         byte[] cont = Utils.readContents(file);
         File target = new File(GITLET_TEM_DIR, fileName);
-        tool.writeContent(target, cont);
+        Tools.writeContent(target, cont);
     }
     public static void commit(String msg) {
+        File[] files = GITLET_TEM_DIR.listFiles();
+        if (files == null) {
+            throw new GitletException("No changes added to the commit." );
+        }
 
+        String Head = readHead();
+        Commit commit = new Commit(msg, Head.substring(0,Utils.UID_LENGTH));
+        File branchName = Utils.join(GITLET_BRANCHES_DIR,Head.substring(Utils.UID_LENGTH));
+        Branch branch = Branch.readBranch(branchName);
+        //写入文件,并清空tem
+        for (File file : files) {
+            byte[] cont = Utils.readContents(file);
+            Tools.writeContent(Tools.getObjectFile(Utils.sha1((Object) cont), GITLET_FILE_DIR), cont);
+            commit.put(file.getName(), Utils.sha1((Object) cont));
+            file.delete();
+        }
+        //写入commit
+        commit.writeCommit(Tools.getObjectFile(commit.toString(), GITLET_FILE_DIR));
+        //更新head
+        Utils.writeContents(GITLET_HEAD, commit.toString()+Head.substring(UID_LENGTH));
+        //更新branch,
+        branch.add(commit.toString());
+        branch.writeBranch(branchName);
     }
     public static void rm(String fileName) {
 
@@ -134,5 +156,15 @@ public class Repository {
         if (!gitletExist()) {
             throw new GitletException("Gitlet does not exist.");
         }
+    }
+
+    /**
+     * 读取head中的值，并返回（由于比较常用，所以单独提出来）
+     * 此函数会顺便检查是否存在.gitlet目录
+     * @return head中的内容
+     */
+    private static String readHead() {
+        checkGitlet();
+        return readContentsAsString(GITLET_HEAD);
     }
 }

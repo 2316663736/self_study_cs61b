@@ -50,7 +50,7 @@ public class Branch implements Dumpable {
      * @param file 要写入的文件
      */
     public void writeBranch(File file) {
-        tool.createFile(file);
+        Tools.createFile(file);
         Utils.writeObject(file, this);
     }
 }

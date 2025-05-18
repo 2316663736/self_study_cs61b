@@ -122,7 +122,7 @@ public class Commit implements Dumpable {
     }
 
     public  void writeCommit(File file) {
-        tool.createFile(file);
+        Tools.createFile(file);
         Utils.writeObject(file, this);
     }
 

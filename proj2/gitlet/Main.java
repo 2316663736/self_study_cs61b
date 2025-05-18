@@ -1,7 +1,7 @@
 package gitlet;
 
 
-import static gitlet.tool.*;
+import static gitlet.Tools.*;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author TODO
@@ -30,8 +30,9 @@ public class Main {
                 Repository.add(args[1]);
                 break;
             case "commit":
-                if (args.length != 2) {
-                    exitWithErrorExist(errorIncorrectOperand);
+                if (args.length != 2 || args[1].trim().isEmpty()) {
+                    System.out.println("Please enter a commit message.");
+                    return;
                 }
                 Repository.commit(args[1]);
                 break;
