@@ -71,10 +71,13 @@ public class Repository {
     }
 
     public static void add(String fileName) {
-
-    }
-    public static void commit(Commit msg) {
-
+        File file = Utils.join(CWD, fileName);
+        if (!file.exists()) {
+            throw new GitletException("File does not exist.");
+        }
+        byte[] cont = Utils.readContents(file);
+        File target = new File(GITLET_TEM_DIR, fileName);
+        tool.writeContent(target, cont);
     }
     public static void commit(String msg) {
 

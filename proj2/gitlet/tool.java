@@ -165,4 +165,8 @@ public class tool {
             throw new GitletException("创建文件时发生IO错误: " + e.getMessage());
         }
     }
+    public static void writeContent(File f, byte[] content) {
+        createFile(f);
+        Utils.writeContents(f, (Object) content);
+    }
 }
