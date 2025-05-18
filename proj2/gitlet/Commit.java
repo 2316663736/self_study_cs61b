@@ -3,7 +3,7 @@ package gitlet;
 // : any imports you need here
 
 
-import java.io.Serializable;
+
 import java.util.Date; // : You'll likely use this in this class
 import java.util.HashMap;
 import java.util.Map;
