@@ -1,6 +1,5 @@
 package gitlet;
 
-import gitlet.tool;
 
 import static gitlet.tool.*;
 
