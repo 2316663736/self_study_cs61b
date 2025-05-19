@@ -138,6 +138,18 @@ public class Commit implements Dumpable {
     public String toString() {
         return Utils.sha1((Object) Utils.serialize(this));
     }
+    public String getFileSHA(String fileName) {
+        if (files == null) {
+            return null;
+        }
+        return files.get(fileName);
+    }
+    public String getFileSHA(File file) {
+        if (file == null) {
+            return null;
+        }
+        return files.get(file.getName());
+    }
 
     public  void writeCommit(File file) {
         Tools.createFile(file);

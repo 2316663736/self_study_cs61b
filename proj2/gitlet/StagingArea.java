@@ -18,9 +18,29 @@ public class StagingArea {
     }
 
     public static void addStagingArea(File file) {
+        // 从删除暂存区移除（如果存在）
         deleteFrom(file, stagingAreaDelete);
-        File toWrite = Utils.join(stagingArea, file.getName());
+
+        // 获取当前文件内容
         byte[] content = Utils.readContents(file);
+        String contentHash = Utils.sha1((Object) content);
+
+        // 获取当前HEAD提交
+        String head = Tools.readHeadCommitId();
+        Commit currentCommit = Commit.readCommit(Tools.getObjectFile(head, Repository.GITLET_FILE_DIR));
+
+        // 检查文件是否在当前提交中且内容相同
+        if (currentCommit.fileExists(file.getName())) {
+            String commitFileSHA = currentCommit.getFileSHA(file);
+            if (contentHash.equals(commitFileSHA)) {
+                // 如果文件内容与当前提交相同，从暂存区移除
+                removeStagingArea(file);
+                return; // 不再继续往下暂存
+            }
+        }
+
+        // 内容不同或未在当前提交中，将文件暂存
+        File toWrite = Utils.join(stagingArea, file.getName());
         Tools.writeContent(toWrite, content);
     }
 
