@@ -8,8 +8,8 @@ import java.util.ResourceBundle;
  * 对暂存区进行操作
  */
 public class StagingArea {
-    private static File stagingArea = Repository.GITLET_TEM_DIR;
-    private static File stagingAreaDelete = Repository.GITLET_TEM_DIR_DELETE;
+    private static final File stagingArea = Repository.GITLET_TEM_DIR;
+    private static final File stagingAreaDelete = Repository.GITLET_TEM_DIR_DELETE;
 
     public static void init() {
         Tools.createDir(stagingArea);
