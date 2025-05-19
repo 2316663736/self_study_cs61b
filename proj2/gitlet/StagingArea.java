@@ -45,8 +45,8 @@ public class StagingArea {
     public static void addStagingAreaDelete(File file) {
         String filename = file.getName();
         File toWrite = Utils.join(stagingAreaDelete, filename);
-        String empty = "";
-        Utils.writeContents(toWrite, empty);
+        byte[] con = Utils.readContents(file);
+        Utils.writeContents(toWrite, con);
     }
 
     public static Commit updateCommit(Commit commit) {
