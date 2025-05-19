@@ -248,6 +248,9 @@ public class Repository {
             } else {
                 try {
                     commitID = Tools.getFullSha1(msg[2], GITLET_FILE_DIR);
+                    if (findBranchOfCommit(commitID) == null) {
+                        throw new GitletException("No such branch.");
+                    }
                 } catch (GitletException e) {
                     throw new GitletException("No commit with that id exists.");
                 }
@@ -284,7 +287,20 @@ public class Repository {
 
     public static void reset(String commitID) {
         checkGitlet();
-
+        String branch = null;
+        try {
+            commitID = Tools.getFullSha1(commitID, GITLET_FILE_DIR);
+            branch = findBranchOfCommit(commitID);
+            if (branch == null) {
+                throw new GitletException("No such branch.");
+            }
+        } catch (GitletException e) {
+            throw new GitletException("No commit with that id exists.");
+        }
+        if (anyFileUntracked()) {
+            throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
+        }
+        changeToCommit(commitID);
     }
 
     public static void merge(String branchName) {
@@ -377,5 +393,18 @@ public class Repository {
             }
         }
         return false;
+    }
+    private  static String findBranchOfCommit(String commitID) {
+        List<String> branchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
+        if (branchNames != null ) {
+            for (String branchName : branchNames) {
+                Branch now = Branch.readBranch(Utils.join(CWD, branchName));
+                if (now.containsCommitID(commitID)) {
+                    return branchName;
+                }
+            }
+        }
+
+        return null;
     }
 }

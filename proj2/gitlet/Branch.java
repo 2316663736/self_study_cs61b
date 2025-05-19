@@ -24,6 +24,10 @@ public class Branch implements Dumpable {
     public Branch(Branch other) {
         this.allID = other.allID;
     }
+
+    public boolean containsCommitID(String id) {
+        return allID.contains(id);
+    }
     public void add(String id) {
         allID.add(id);
     }
