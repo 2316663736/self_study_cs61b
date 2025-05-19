@@ -1,0 +1,33 @@
+# 测试文件: test-checkout-file.in
+I definitions.inc
+> init
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "added original wug.txt"
+<<<
++ wug.txt notwug.txt
+> add wug.txt
+<<<
+> commit "changed wug.txt"
+<<<
+> log
+===
+${COMMIT_HEAD}
+changed wug.txt
+
+===
+${COMMIT_HEAD}
+added original wug.txt
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+# 保存第二个提交ID
+D COMMIT_ID_2 "${2}"
+> checkout ${COMMIT_ID_2} -- wug.txt
+<<<
+= wug.txt wug.txt

@@ -1,0 +1,17 @@
+# 测试文件: test-global-log-find.in
+I definitions.inc
+> init
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "message to find"
+<<<
++ notwug.txt notwug.txt
+> add notwug.txt
+<<<
+> commit "another commit"
+<<<
+> find "message to find"
+${COMMIT_HEAD}
+<<<*

@@ -1,0 +1,34 @@
+# 测试文件: test-reset.in
+I definitions.inc
+> init
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "commit 1"
+<<<
++ notwug.txt notwug.txt
+> add notwug.txt
+<<<
+> commit "commit 2"
+<<<
+# 获取第一个提交的ID
+> log
+===
+${COMMIT_HEAD}
+commit 2
+
+===
+${COMMIT_HEAD}
+commit 1
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+D COMMIT_ID_1 "${2}"
+> reset ${COMMIT_ID_1}
+<<<
+E wug.txt
+* notwug.txt

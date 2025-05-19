@@ -1,0 +1,28 @@
+# 测试文件: test-error-handling.in
+I definitions.inc
+> init
+<<<
+# 测试添加不存在的文件
+> add nonexistent.txt
+File does not exist.
+<<<
+
+# 测试删除未跟踪的文件
+> rm nonexistent.txt
+No reason to remove the file.
+<<<
+
+# 测试空的提交信息
+> commit ""
+Please enter a commit message.
+<<<
+
+# 测试不存在的分支
+> checkout nonexistent-branch
+No such branch exists.
+<<<
+
+# 测试创建已存在的分支
+> branch master
+A branch with that name already exists.
+<<<

@@ -7,7 +7,10 @@ from os import chdir, environ, getcwd, mkdir, remove
 from shutil import copyfile, rmtree
 from math import log
 from glob import glob
-
+# 在文件开头的 import 部分之后添加:
+import os
+if 'REPO_DIR' not in os.environ:
+    os.environ['REPO_DIR'] = os.path.dirname(os.path.dirname(os.getcwd()))
 SHORT_USAGE = """\
 Usage: python3 runner.py OPTIONS TEST.in ...
    OPTIONS may include

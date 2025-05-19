@@ -1,0 +1,26 @@
+# 测试文件: test-branch-basic.in
+I definitions.inc
+> init
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "added wug.txt on master"
+<<<
+> branch new-branch
+<<<
+> checkout new-branch
+<<<
++ notwug.txt notwug.txt
+> add notwug.txt
+<<<
+> commit "added notwug.txt on new-branch"
+<<<
+> checkout master
+<<<
+* notwug.txt
+E wug.txt
+> checkout new-branch
+<<<
+E notwug.txt
+E wug.txt

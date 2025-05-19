@@ -1,0 +1,80 @@
+# 测试文件: test-complex-scenario.in
+I definitions.inc
+> init
+<<<
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "initial wug"
+<<<
+> branch dev
+<<<
++ notwug.txt notwug.txt
+> add notwug.txt
+<<<
+> commit "add notwug to master"
+<<<
+> checkout dev
+<<<
++ wug.txt notwug.txt
+> add wug.txt
+<<<
+> commit "change wug in dev"
+<<<
++ wug2.txt wug.txt
+> add wug2.txt
+<<<
+> commit "add wug2 to dev"
+<<<
+> checkout master
+<<<
+> log
+===
+${COMMIT_HEAD}
+add notwug to master
+
+===
+${COMMIT_HEAD}
+initial wug
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+D MASTER_HEAD "${1}"
+> checkout dev
+<<<
+> log
+===
+${COMMIT_HEAD}
+add wug2 to dev
+
+===
+${COMMIT_HEAD}
+change wug in dev
+
+===
+${COMMIT_HEAD}
+initial wug
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+D DEV_HEAD "${1}"
+> status
+=== Branches ===
+\*dev
+master
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<*

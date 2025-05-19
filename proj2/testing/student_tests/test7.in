@@ -1,0 +1,21 @@
+# 测试文件: test-rm-branch.in
+I definitions.inc
+> init
+<<<
+> branch new-branch
+<<<
+> rm-branch new-branch
+<<<
+> status
+=== Branches ===
+\*master
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<*
