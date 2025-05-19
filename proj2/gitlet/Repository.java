@@ -1,8 +1,10 @@
 package gitlet;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TreeSet;
 
 import static gitlet.Utils.*;
 
@@ -161,11 +163,11 @@ public class Repository {
     }
     public static void status() {
         checkGitlet();
-
+        String headCommitId = Tools.readHeadCommitId();
+        String nowBranch = Tools.readHeadBranch();
         //=== Branches ===
         System.out.println("=== Branches ===");
         List<String> branchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
-        String nowBranch = Tools.readHeadBranch();
         if (branchNames != null) {
             for (String branchName : branchNames) {
                 if (branchName.equals(nowBranch)) {
@@ -195,13 +197,51 @@ public class Repository {
         System.out.println();
         //=== Modifications Not Staged For Commit ===
         System.out.println("=== Modifications Not Staged For Commit ===");
+        List<String> nowFileNames = Utils.plainFilenamesIn(CWD);
+        Commit nowCommit = Commit.readCommit(Tools.getObjectFile(headCommitId, GITLET_FILE_DIR));
+        List<String> commitFileNames = nowCommit.getAllFiles();
+        List<String> allFileNames = Tools.mergeAndSort(nowFileNames, stagedFileNames, commitFileNames);
+        List<String> allFileStatus = new ArrayList<>();
+
+        for (String fileName : allFileNames) {
+            String temp = "none";
+            if (nowFileNames != null && !nowFileNames.contains(fileName)) {
+                temp = "deleted";
+            } else if (stagedFileNames != null && stagedFileNames.contains(fileName)) {
+                if (Tools.compareSHA1ofFile(Utils.join(CWD, fileName), Utils.join(GITLET_TEM_DIR, fileName))) {
+                    temp = "modified";
+                }
+            } else if (commitFileNames != null && commitFileNames.contains(fileName)) {
+                if (Tools.compareSHA1ofFile(Utils.join(CWD, fileName), Utils.join(GITLET_FILE_DIR, fileName))) {
+                    temp = "modified";
+                }
+            } else {
+                temp = "untracked";
+            }
+            allFileStatus.add(temp);
+        }
+        for (int i = 0; i < allFileStatus.size(); i++) {
+            String statu = allFileStatus.get(i);
+            String filename = allFileNames.get(i);
+            if (statu.equals("modified") || statu.equals("deleted")) {
+                System.out.println(filename + " (" + statu + ")");
+            }
+        }
 
         System.out.println();
         //=== Untracked Files ===
         System.out.println("=== Untracked Files ===");
-
+        for (int i = 0; i < allFileStatus.size(); i++) {
+            String statu = allFileStatus.get(i);
+            String filename = allFileNames.get(i);
+            if (statu.equals("untracked")) {
+                System.out.println(filename);
+            }
+        }
         System.out.println();
     }
+
+
 
     public static void checkout(String ... msg) {
         checkGitlet();

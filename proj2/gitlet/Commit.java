@@ -5,10 +5,8 @@ package gitlet;
 
 
 import java.io.File;
-import java.util.Date; // : You'll likely use this in this class
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Formatter;
+import java.util.*;
+
 /** Represents a gitlet commit object.
  *   存储commit信息，
  *   包括提交时的message，
@@ -156,6 +154,17 @@ public class Commit implements Dumpable {
         Utils.writeObject(file, this);
     }
 
+    public List<String> getAllFiles() {
+        List<String> result = new ArrayList<>();
+        if (files == null) {
+            return result;
+        }
+        for (String fileName : files.keySet()) {
+            result.add(fileName);
+        }
+        return result;
+    }
+
     public static Commit readCommit(File file) {
         return Utils.readObject(file, Commit.class);
     }
@@ -177,5 +186,6 @@ public class Commit implements Dumpable {
         }
         return find(commitMessage, readCommit(Tools.getObjectFile(nowCommit.father, Repository.GITLET_FILE_DIR)));
     }
+
 
 }

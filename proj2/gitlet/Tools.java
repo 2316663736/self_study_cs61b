@@ -4,15 +4,41 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.TreeSet;
 
-import static gitlet.Utils.UID_LENGTH;
 import static gitlet.Utils.readContentsAsString;
 
 public class Tools {
 
+    public  static List<String> mergeAndSort(List<String>... lists) {
+        // 创建TreeSet，它会自动去重和排序
+        TreeSet<String> treeSet = new TreeSet<>();
 
+        // 将所有列表的元素添加到TreeSet
+        for (List<String> list : lists) {
+            treeSet.addAll(list);
+        }
 
+        // 将TreeSet转换回List并返回
+        return new ArrayList<>(treeSet);
+    }
 
+    public static String getSHA1ofFile(File file) {
+        if (!file.exists()) {
+            return null;
+        }
+        return Utils.sha1((Object) Utils.readContents(file));
+    }
+    public static boolean compareSHA1ofFile(File file1, File file2) {
+        if (!file1.exists()) {
+            return false;
+        }
+        if (!file2.exists()) {
+            return false;
+        }
+        return Objects.equals(getSHA1ofFile(file1), getSHA1ofFile(file2));
+    }
 
     /**
      * 判断一个字符串是否是有效的SHA-1哈希值
