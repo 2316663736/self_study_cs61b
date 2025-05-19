@@ -271,10 +271,26 @@ public class Repository {
 
     public static void branch(String branchName) {
         checkGitlet();
+        List<String> allBranchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
+        if (allBranchNames == null || allBranchNames.contains(branchName)) {
+            throw new GitletException("A branch with that name already exists.");
+        }
+        Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, Tools.readHeadBranch()));
+        nowBranch.writeBranch(Utils.join(GITLET_BRANCHES_DIR, branchName));
     }
 
     public static void rmBranch(String branchName) {
         checkGitlet();
+        List<String> allBranchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
+        if (allBranchNames == null || !allBranchNames.contains(branchName)) {
+            throw new GitletException("A branch with that name does not exist.");
+        }
+        String headBranch = Tools.readHeadBranch();
+        if (headBranch.equals(branchName)) {
+            throw new GitletException("Cannot remove the current branch.");
+        }
+        File deleteBranch = Utils.join(GITLET_BRANCHES_DIR, branchName);
+        deleteBranch.delete();
     }
 
     public static void reset(String commitID) {
