@@ -65,11 +65,13 @@ public class Tools {
         String remainingPrefix = shaPrefix.length() >= 2 ? shaPrefix.substring(2) : "";
         List<String> matchedShas = new ArrayList<>();
 
-        for (File file : objDir.listFiles()) {
-            String fileName = file.getName();
-            // 检查文件名是否以剩余前缀开头
-            if (fileName.startsWith(remainingPrefix)) {
-                matchedShas.add(dirPrefix + fileName);
+        List<String> fileNames = Utils.plainFilenamesIn(objDir);
+        if (fileNames != null) {
+            for (String fileName : fileNames) {
+                // 检查文件名是否以剩余前缀开头
+                if (fileName.startsWith(remainingPrefix)) {
+                    matchedShas.add(dirPrefix + fileName);
+                }
             }
         }
 

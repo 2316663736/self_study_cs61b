@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.FileReader;
+import java.util.List;
 import java.util.ResourceBundle;
 
 /**
@@ -28,12 +29,12 @@ public class StagingArea {
     }
 
     private static boolean deleteFrom(File file, File stagingArea) {
-        File[] files = stagingArea.listFiles(File::isFile);
-        if (files != null) {
+        List<String> fileNames = Utils.plainFilenamesIn(stagingArea);
+        if (fileNames != null) {
             String filename = file.getName();
-            for (File f : files) {
-                if (filename.equals(f.getName())) {
-                    f.delete();
+            for (String name : fileNames) {
+                if (filename.equals(name)) {
+                    Utils.join(stagingArea, name).delete();
                     return true;
                 }
             }
@@ -49,20 +50,21 @@ public class StagingArea {
     }
 
     public static Commit updateCommit(Commit commit) {
-        File[] files = stagingArea.listFiles(File::isFile);
-        File[] filesDelete = stagingAreaDelete.listFiles(File::isFile);
-        if (files != null) {
-            for (File file : files) {
+        List<String> fileNames = Utils.plainFilenamesIn(stagingArea);
+        List<String> fileNamesDelete = Utils.plainFilenamesIn(stagingAreaDelete);
+        if (fileNames != null) {
+            for (String fileName : fileNames) {
+                File file = Utils.join(stagingArea, fileName);
                 byte[] cont = Utils.readContents(file);
                 Tools.writeContent(Tools.getObjectFile(Utils.sha1((Object) cont), Repository.GITLET_FILE_DIR), cont);
-                commit.put(file.getName(), Utils.sha1((Object) cont));
+                commit.put(fileName, Utils.sha1((Object) cont));
                 file.delete();
             }
         }
-        if (filesDelete != null) {
-            for (File file : filesDelete) {
-                commit.remove(file.getName());
-                file.delete();
+        if (fileNamesDelete != null && !fileNamesDelete.isEmpty()) {
+            for (String fileName : fileNamesDelete) {
+                commit.remove(fileName);
+                Utils.join(stagingAreaDelete, fileName).delete();
             }
         }
         return commit;

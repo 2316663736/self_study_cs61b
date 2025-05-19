@@ -148,4 +148,12 @@ public class Commit implements Dumpable {
         return Utils.readObject(file, Commit.class);
     }
 
+    public static void printLog(Commit now) {
+        now.dump();
+        if (now.father == null) {
+            return;
+        }
+        printLog(readCommit(Tools.getObjectFile(now.father, Repository.GITLET_FILE_DIR)));
+    }
+
 }
