@@ -86,15 +86,14 @@ public class Repository {
     }
     public static void commit(String msg) {
         checkGitlet();
-        List<String> filesAdd = Utils.plainFilenamesIn(GITLET_TEM_DIR);
-        List<String> filesRemove = Utils.plainFilenamesIn(GITLET_TEM_DIR_DELETE);
-        if ((filesAdd == null || filesAdd.isEmpty()) && (filesRemove == null || filesRemove.isEmpty())) {
+        if (!StagingArea.haveChangeInStagingArea()) {
             throw new GitletException("No changes added to the commit." );
         }
 
-        String HeadCommit = Tools.readHeadCommitId();
-        Commit lastCommit = Commit.readCommit(Tools.getObjectFile(HeadCommit, GITLET_FILE_DIR));
-        Commit commit = new Commit(msg, HeadCommit, lastCommit);
+        String headCommit = Tools.readHeadCommitId();
+        String headBranch = Tools.readHeadBranch();
+        Commit lastCommit = Commit.readCommit(Tools.getObjectFile(headCommit, GITLET_FILE_DIR));
+        Commit commit = new Commit(msg, headCommit, lastCommit);
         File branchName = Utils.join(GITLET_BRANCHES_DIR, Tools.readHeadBranch());
         Branch branch = Branch.readBranch(branchName);
         //写入文件,并清空tem
@@ -102,7 +101,7 @@ public class Repository {
         //写入commit
         commit.writeCommit(Tools.getObjectFile(commit.toString(), GITLET_FILE_DIR));
         //更新head
-        Utils.writeContents(GITLET_HEAD, commit.toString() + HeadCommit);
+        Utils.writeContents(GITLET_HEAD, commit.toString() + headBranch);
         //更新branch,
         branch.add(commit.toString());
         branch.writeBranch(branchName);

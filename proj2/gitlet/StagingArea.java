@@ -1,9 +1,7 @@
 package gitlet;
 
 import java.io.File;
-import java.io.FileReader;
 import java.util.List;
-import java.util.ResourceBundle;
 
 /**
  * 对暂存区进行操作
@@ -17,6 +15,14 @@ public class StagingArea {
         Tools.createDir(stagingAreaDelete);
     }
 
+    public static boolean haveChangeInStagingArea() {
+        List<String> filesAdd = Utils.plainFilenamesIn(stagingArea);
+        List<String> filesRemove = Utils.plainFilenamesIn(stagingAreaDelete);
+        if ((filesAdd == null || filesAdd.isEmpty()) && (filesRemove == null || filesRemove.isEmpty())) {
+            return false;
+        }
+        return true;
+    }
     public static void addStagingArea(File file) {
         // 从删除暂存区移除（如果存在）
         deleteFrom(file, stagingAreaDelete);
