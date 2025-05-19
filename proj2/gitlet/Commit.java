@@ -156,4 +156,14 @@ public class Commit implements Dumpable {
         printLog(readCommit(Tools.getObjectFile(now.father, Repository.GITLET_FILE_DIR)));
     }
 
+    public static String find(String commitMessage, Commit nowCommit) {
+        if (nowCommit.message.equals(commitMessage)) {
+            return nowCommit.toString();
+        }
+        if (nowCommit.father == null) {
+            return null;
+        }
+        return find(commitMessage, readCommit(Tools.getObjectFile(nowCommit.father, Repository.GITLET_FILE_DIR)));
+    }
+
 }

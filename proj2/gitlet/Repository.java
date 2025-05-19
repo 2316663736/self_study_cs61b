@@ -1,7 +1,5 @@
 package gitlet;
 
-import org.checkerframework.checker.units.qual.C;
-
 import java.io.File;
 import java.util.Date;
 import java.util.List;
@@ -135,9 +133,9 @@ public class Repository {
 
     public static void globalLog() {
         checkGitlet();
-        List<String> fileNames = Utils.plainFilenamesIn(GITLET_FILE_DIR);
-        if (fileNames != null) {
-            for (String fileName : fileNames) {
+        List<String> branchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
+        if (branchNames != null) {
+            for (String fileName : branchNames) {
                 Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, fileName));
                 Commit currentCommit = Commit.readCommit(Tools.getObjectFile(nowBranch.getNewest(), GITLET_FILE_DIR));
                 Commit.printLog(currentCommit);
@@ -147,11 +145,23 @@ public class Repository {
 
     public static void find(String commitMessage) {
         checkGitlet();
-
+        List<String> branchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
+        if (branchNames != null) {
+            for (String fileName : branchNames) {
+                Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, fileName));
+                Commit currentCommit = Commit.readCommit(Tools.getObjectFile(nowBranch.getNewest(), GITLET_FILE_DIR));
+                String res = Commit.find(commitMessage, currentCommit);
+                if (res != null) {
+                    System.out.println(res);
+                    return;
+                }
+            }
+        }
         throw new GitletException("Found no commit with that message.");
     }
     public static void status() {
         checkGitlet();
+
     }
 
     public static void checkout(String ... msg) {
