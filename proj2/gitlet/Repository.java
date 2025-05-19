@@ -4,6 +4,7 @@ import org.checkerframework.checker.units.qual.C;
 
 import java.io.File;
 import java.util.Date;
+import java.util.List;
 
 import static gitlet.Utils.*;
 
@@ -127,14 +128,26 @@ public class Repository {
     }
     public static void log() {
         checkGitlet();
+        String headCommitId = readHead().substring(0, Utils.UID_LENGTH);
+        Commit current = Commit.readCommit(Tools.getObjectFile(headCommitId, GITLET_FILE_DIR));
+        Commit.printLog(current);
     }
 
     public static void globalLog() {
         checkGitlet();
+        List<String> fileNames = Utils.plainFilenamesIn(GITLET_FILE_DIR);
+        if (fileNames != null) {
+            for (String fileName : fileNames) {
+                Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, fileName));
+                Commit currentCommit = Commit.readCommit(Tools.getObjectFile(nowBranch.getNewest(), GITLET_FILE_DIR));
+                Commit.printLog(currentCommit);
+            }
+        }
     }
 
     public static void find(String commitMessage) {
         checkGitlet();
+
         throw new GitletException("Found no commit with that message.");
     }
     public static void status() {
