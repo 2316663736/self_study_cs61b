@@ -95,4 +95,21 @@ public class StagingArea {
         }
         return commit;
     }
+
+    public static void deleteStagingArea() {
+        List<String> fileNames = Utils.plainFilenamesIn(stagingArea);
+        List<String> fileNamesDelete = Utils.plainFilenamesIn(stagingAreaDelete);
+        if (fileNames != null) {
+            for (String fileName : fileNames) {
+                File file = Utils.join(stagingArea, fileName);
+                file.delete();
+            }
+        }
+        if (fileNamesDelete != null ) {
+            for (String fileName : fileNamesDelete) {
+                File file = Utils.join(stagingAreaDelete, fileName);
+                file.delete();
+            }
+        }
+    }
 }

@@ -1,10 +1,7 @@
 package gitlet;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 
 import static gitlet.Utils.*;
 
@@ -201,25 +198,8 @@ public class Repository {
         Commit nowCommit = Commit.readCommit(Tools.getObjectFile(headCommitId, GITLET_FILE_DIR));
         List<String> commitFileNames = nowCommit.getAllFiles();
         List<String> allFileNames = Tools.mergeAndSort(nowFileNames, stagedFileNames, commitFileNames);
-        List<String> allFileStatus = new ArrayList<>();
+        List<String> allFileStatus = getFileStatus(nowFileNames, stagedFileNames, commitFileNames, allFileNames);
 
-        for (String fileName : allFileNames) {
-            String temp = "none";
-            if (nowFileNames != null && !nowFileNames.contains(fileName)) {
-                temp = "deleted";
-            } else if (stagedFileNames != null && stagedFileNames.contains(fileName)) {
-                if (Tools.compareSHA1ofFile(Utils.join(CWD, fileName), Utils.join(GITLET_TEM_DIR, fileName))) {
-                    temp = "modified";
-                }
-            } else if (commitFileNames != null && commitFileNames.contains(fileName)) {
-                if (Tools.compareSHA1ofFile(Utils.join(CWD, fileName), Utils.join(GITLET_FILE_DIR, fileName))) {
-                    temp = "modified";
-                }
-            } else {
-                temp = "untracked";
-            }
-            allFileStatus.add(temp);
-        }
         for (int i = 0; i < allFileStatus.size(); i++) {
             String statu = allFileStatus.get(i);
             String filename = allFileNames.get(i);
@@ -245,6 +225,48 @@ public class Repository {
 
     public static void checkout(String ... msg) {
         checkGitlet();
+        if (msg.length == 2) {
+            List<String> allBranchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
+            if (allBranchNames == null || !allBranchNames.contains(msg[1])) {
+                throw new GitletException("No such branch exists.");
+            } else if (Tools.readHeadBranch().equals(msg[1])) {
+                throw new GitletException("No need to checkout the current branch.");
+            }
+            String headCommitId = Tools.readHeadCommitId();
+            List<String> nowFileNames = Utils.plainFilenamesIn(CWD);
+            Commit nowCommit = Commit.readCommit(Tools.getObjectFile(headCommitId, GITLET_FILE_DIR));
+            List<String> commitFileNames = nowCommit.getAllFiles();
+            List<String> stagedFileNames = Utils.plainFilenamesIn(GITLET_TEM_DIR);
+            List<String> allFileNames = Tools.mergeAndSort(nowFileNames, stagedFileNames, commitFileNames);
+            List<String> allFileStatus = getFileStatus(nowFileNames, stagedFileNames, commitFileNames, allFileNames);
+            for (String statu : allFileStatus) {
+                if (statu.equals("untracked")) {
+                    throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
+                }
+            }
+            Branch outBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, msg[1]));
+            changeToCommit(outBranch.getNewest());
+        } else if (msg.length == 3 || msg.length == 4) {
+            String fileName = msg[msg.length - 1];
+            String commitID = null;
+            if (msg.length == 3) {
+                if (!msg[1].equals("--")) {
+                    throw new GitletException("Invalid checkout operand.");
+                }
+                commitID = Tools.readHeadCommitId();
+            } else {
+                try {
+                    commitID = Tools.getFullSha1(msg[2], GITLET_FILE_DIR);
+                } catch (GitletException e) {
+                    throw new GitletException("No commit with that id exists.");
+                }
+            }
+            Commit nowCommit = Commit.readCommit(Tools.getObjectFile(commitID, GITLET_FILE_DIR));
+            if (!nowCommit.fileExists(fileName)) {
+                throw new GitletException(" File does not exist in that commit.");
+            }
+            changeOneFileCWD(fileName, nowCommit.getFileSHA(fileName));
+        }
     }
 
     public static void branch(String branchName) {
@@ -263,6 +285,41 @@ public class Repository {
         checkGitlet();
     }
 
+    private static void changeOneFileCWD(String fileName, String sha1OfFile) {
+        File pathToWrite = Utils.join(CWD, fileName);
+        //sha1为null，代表需要删除
+        if (sha1OfFile == null) {
+            if (pathToWrite.exists()) {
+                pathToWrite.delete();
+            }
+            return;
+        }
+        //sha1不合法
+        if (!Tools.isValidSha1(sha1OfFile, true))
+            throw new GitletException("Sha1 " + sha1OfFile + " is not valid.");
+        byte[] con = Utils.readContents(Tools.getObjectFile(sha1OfFile, GITLET_FILE_DIR));
+        Utils.writeContents(pathToWrite, (Object) con);
+    }
+
+    private static void changeToCommit(String commitID) {
+        if (!Tools.isValidSha1(commitID, true))
+            throw new GitletException("Sha1 " + commitID + " is not valid.");
+        Commit tarCommit = Commit.readCommit(Tools.getObjectFile(commitID, GITLET_FILE_DIR));
+        List<String> tarFiles = tarCommit.getAllFiles();
+        List<String> nowFileNames = Utils.plainFilenamesIn(CWD);
+        List<String> allFileNames = Tools.mergeAndSort(tarFiles, nowFileNames);
+        for (String fileName : allFileNames) {
+            if (tarFiles == null || !tarFiles.contains(fileName)) {
+                changeOneFileCWD(fileName, null);
+            } else if (nowFileNames != null && nowFileNames.contains(fileName)) {
+                if (!Tools.compareSHA1ofFile(Utils.join(CWD, fileName), Utils.join(GITLET_FILE_DIR, fileName))) {
+                    changeOneFileCWD(fileName, tarCommit.getFileSHA(fileName));
+                }
+            } else {
+                changeOneFileCWD(fileName, tarCommit.getFileSHA(fileName));
+            }
+        }
+    }
     /**
      * 返回.gitlet目录是否存在
      * @return 如果.gitlet存在则返回true，反之false
@@ -279,5 +336,25 @@ public class Repository {
         }
     }
 
-
+    private static List<String> getFileStatus(List<String> nowFileNames, List<String> stagedFileNames, List<String> commitFileNames, List<String> allFileNames) {
+        List<String> result = new ArrayList<>();
+        for (String fileName : allFileNames) {
+            String temp = "none";
+            if (nowFileNames != null && !nowFileNames.contains(fileName)) {
+                temp = "deleted";
+            } else if (stagedFileNames != null && stagedFileNames.contains(fileName)) {
+                if (!Tools.compareSHA1ofFile(Utils.join(CWD, fileName), Utils.join(GITLET_TEM_DIR, fileName))) {
+                    temp = "modified";
+                }
+            } else if (commitFileNames != null && commitFileNames.contains(fileName)) {
+                if (!Tools.compareSHA1ofFile(Utils.join(CWD, fileName), Utils.join(GITLET_FILE_DIR, fileName))) {
+                    temp = "modified";
+                }
+            } else {
+                temp = "untracked";
+            }
+            result.add(temp);
+        }
+        return result;
+    }
 }
