@@ -86,8 +86,9 @@ public class Repository {
     }
     public static void commit(String msg) {
         checkGitlet();
-        File[] files = GITLET_TEM_DIR.listFiles(File::isFile);
-        if (files == null || files.length == 0) {
+        List<String> filesAdd = Utils.plainFilenamesIn(GITLET_TEM_DIR);
+        List<String> filesRemove = Utils.plainFilenamesIn(GITLET_TEM_DIR_DELETE);
+        if ((filesAdd == null || filesAdd.isEmpty()) && (filesRemove == null || filesRemove.isEmpty())) {
             throw new GitletException("No changes added to the commit." );
         }
 
