@@ -9,7 +9,7 @@ public class Branch implements Dumpable {
      * 存储当前branch的一个历史提交，从0到最后，代表由旧到新
      */
     private List<String> allID = null;
-
+    private static final File GITLET_BRANCHES_DIR = Repository.GITLET_BRANCHES_DIR;
     /**
      * 创建一个新的，空的branch
      */
@@ -52,5 +52,10 @@ public class Branch implements Dumpable {
     public void writeBranch(File file) {
         Tools.createFile(file);
         Utils.writeObject(file, this);
+    }
+
+    public static boolean branchExists(String branchName) {
+        List<String> allBranchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
+        return allBranchNames != null && allBranchNames.contains(branchName);
     }
 }

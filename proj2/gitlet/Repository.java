@@ -226,25 +226,16 @@ public class Repository {
     public static void checkout(String ... msg) {
         checkGitlet();
         if (msg.length == 2) {
-            List<String> allBranchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
-            if (allBranchNames == null || !allBranchNames.contains(msg[1])) {
+
+            if (!Branch.branchExists(msg[1])) {
                 throw new GitletException("No such branch exists.");
-            } else if (Tools.readHeadBranch().equals(msg[1])) {
+            }else if (Tools.readHeadBranch().equals(msg[1])) {
                 throw new GitletException("No need to checkout the current branch.");
-            }
-            String headCommitId = Tools.readHeadCommitId();
-            List<String> nowFileNames = Utils.plainFilenamesIn(CWD);
-            Commit nowCommit = Commit.readCommit(Tools.getObjectFile(headCommitId, GITLET_FILE_DIR));
-            List<String> commitFileNames = nowCommit.getAllFiles();
-            List<String> stagedFileNames = Utils.plainFilenamesIn(GITLET_TEM_DIR);
-            List<String> allFileNames = Tools.mergeAndSort(nowFileNames, stagedFileNames, commitFileNames);
-            List<String> allFileStatus = getFileStatus(nowFileNames, stagedFileNames, commitFileNames, allFileNames);
-            for (String statu : allFileStatus) {
-                if (statu.equals("untracked")) {
-                    throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
-                }
+            } else if (anyFileUntracked()) {
+                throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
             }
             Branch outBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, msg[1]));
+            StagingArea.deleteStagingArea();//清楚暂存区
             changeToCommit(outBranch.getNewest());
         } else if (msg.length == 3 || msg.length == 4) {
             String fileName = msg[msg.length - 1];
@@ -271,8 +262,7 @@ public class Repository {
 
     public static void branch(String branchName) {
         checkGitlet();
-        List<String> allBranchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
-        if (allBranchNames == null || allBranchNames.contains(branchName)) {
+        if (Branch.branchExists(branchName)) {
             throw new GitletException("A branch with that name already exists.");
         }
         Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, Tools.readHeadBranch()));
@@ -281,8 +271,7 @@ public class Repository {
 
     public static void rmBranch(String branchName) {
         checkGitlet();
-        List<String> allBranchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
-        if (allBranchNames == null || !allBranchNames.contains(branchName)) {
+        if (!Branch.branchExists(branchName)) {
             throw new GitletException("A branch with that name does not exist.");
         }
         String headBranch = Tools.readHeadBranch();
@@ -295,6 +284,7 @@ public class Repository {
 
     public static void reset(String commitID) {
         checkGitlet();
+
     }
 
     public static void merge(String branchName) {
@@ -372,5 +362,20 @@ public class Repository {
             result.add(temp);
         }
         return result;
+    }
+    private static boolean anyFileUntracked() {
+        String headCommitId = Tools.readHeadCommitId();
+        List<String> nowFileNames = Utils.plainFilenamesIn(CWD);
+        Commit nowCommit = Commit.readCommit(Tools.getObjectFile(headCommitId, GITLET_FILE_DIR));
+        List<String> commitFileNames = nowCommit.getAllFiles();
+        List<String> stagedFileNames = Utils.plainFilenamesIn(GITLET_TEM_DIR);
+        List<String> allFileNames = Tools.mergeAndSort(nowFileNames, stagedFileNames, commitFileNames);
+        List<String> allFileStatus = getFileStatus(nowFileNames, stagedFileNames, commitFileNames, allFileNames);
+        for (String statu : allFileStatus) {
+            if (statu.equals("untracked")) {
+                return true;
+            }
+        }
+        return false;
     }
 }
