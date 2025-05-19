@@ -78,6 +78,7 @@ public class Repository {
     }
 
     public static void add(String fileName) {
+        checkGitlet();
         File file = Utils.join(CWD, fileName);
         if (!file.exists()) {
             throw new GitletException("File does not exist.");
@@ -85,6 +86,7 @@ public class Repository {
         StagingArea.addStagingArea(file);
     }
     public static void commit(String msg) {
+        checkGitlet();
         File[] files = GITLET_TEM_DIR.listFiles(File::isFile);
         if (files == null || files.length == 0) {
             throw new GitletException("No changes added to the commit." );
@@ -105,13 +107,17 @@ public class Repository {
         branch.add(commit.toString());
         branch.writeBranch(branchName);
     }
+
     public static void rm(String fileName) {
+        checkGitlet();
+
         boolean find = false;
         File file = Utils.join(CWD, fileName);
         String Head = readHead();
         Commit commit = Commit.readCommit(Tools.getObjectFile(Head.substring(0, UID_LENGTH), GITLET_FILE_DIR));
         if (commit.fileExists(fileName)) {
             StagingArea.addStagingAreaDelete(file);
+            file.delete();
             find = true;
         }
         find = StagingArea.removeStagingArea(file) || find;
@@ -120,38 +126,39 @@ public class Repository {
         }
     }
     public static void log() {
-
+        checkGitlet();
     }
 
     public static void globalLog() {
-
+        checkGitlet();
     }
 
     public static void find(String commitMessage) {
-        System.err.println("Found no commit with that message.");
+        checkGitlet();
+        throw new GitletException("Found no commit with that message.");
     }
     public static void status() {
-
+        checkGitlet();
     }
 
     public static void checkout(String ... msg) {
-
+        checkGitlet();
     }
 
     public static void branch(String branchName) {
-
+        checkGitlet();
     }
 
     public static void rmBranch(String branchName) {
-
+        checkGitlet();
     }
 
     public static void reset(String commitID) {
-
+        checkGitlet();
     }
 
     public static void merge(String branchName) {
-
+        checkGitlet();
     }
 
     /**
@@ -166,7 +173,7 @@ public class Repository {
      */
     private static void checkGitlet() {
         if (!gitletExist()) {
-            throw new GitletException("Gitlet does not exist.");
+            throw new GitletException("Not in an initialized Gitlet directory.");
         }
     }
 
@@ -176,7 +183,6 @@ public class Repository {
      * @return head中的内容
      */
     private static String readHead() {
-        checkGitlet();
         return readContentsAsString(GITLET_HEAD);
     }
 }

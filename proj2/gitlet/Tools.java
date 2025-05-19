@@ -9,29 +9,6 @@ public class Tools {
 
 
 
-    public static final int errorNoArgs = 0;
-    public static final int errorNoCommand = 1;
-    public static final int errorIncorrectOperand = 2;
-    public static  void exitWithErrorExist(int err) {
-        switch (err) {
-            case errorNoArgs:
-                System.out.println("Please enter a command.");
-                break;
-            case errorNoCommand:
-                System.out.println("No command with that name exists.");
-                break;
-            case errorIncorrectOperand:
-                System.out.println("Incorrect operand.");
-                break;
-            default:
-                System.out.println("Unknown error in Main exitWithErrorExist.");
-        }
-        System.exit(0);
-    }
-    public static  void exitWithErrorNotExist(String err, int errCode) {
-        System.out.println(err);
-        System.exit(errCode);
-    }
 
 
     /**
@@ -72,7 +49,7 @@ public class Tools {
             return objFile.exists() ? shaPrefix : null;
         }
         if (!isValidSha1(shaPrefix, false)) {
-            throw new GitletException("Invalid sha1: " + shaPrefix);
+            throw new GitletException("Invalid sha1: " + shaPrefix + ".");
         }
 
         // 获取前两位作为目录名
@@ -102,7 +79,7 @@ public class Tools {
         } else if (matchedShas.size() > 1) {
             // 多个匹配，返回null或抛出异常
             // 如果希望直接报错，可以改为:
-             throw new GitletException("Ambiguous prefix: " + shaPrefix);
+             throw new GitletException("Ambiguous prefix: " + shaPrefix + ".");
 //            return null;
         } else {
             return null;
@@ -117,7 +94,7 @@ public class Tools {
     public static File getObjectFile(String sha1, File FILE_DIR) {
 
         if (! isValidSha1(sha1, true)) {
-            throw new GitletException("Invalid SHA-1: " + sha1);
+            throw new GitletException("Invalid SHA-1: " + sha1 + ".");
         }
 
         String dirName = sha1.substring(0, 2);
@@ -137,7 +114,7 @@ public class Tools {
 
         // mkdirs() 会创建整个路径（包括所有必需但不存在的父目录）
         if (!dir.mkdirs()) {
-            throw new GitletException("无法创建目录: " + dir.getPath());
+            throw new GitletException("无法创建目录: " + dir.getPath() + ".");
         }
     }
 
@@ -159,10 +136,10 @@ public class Tools {
         // 创建文件
         try {
             if (!f.createNewFile()) {
-                throw new GitletException("无法创建文件: " + f.getPath());
+                throw new GitletException("无法创建文件: " + f.getPath() + ".");
             }
         } catch (IOException e) {
-            throw new GitletException("创建文件时发生IO错误: " + e.getMessage());
+            throw new GitletException("创建文件时发生IO错误: " + e.getMessage() + ".");
         }
     }
     public static void writeContent(File f, byte[] content) {

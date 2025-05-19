@@ -51,13 +51,15 @@ public class StagingArea {
     public static Commit updateCommit(Commit commit) {
         File[] files = stagingArea.listFiles(File::isFile);
         File[] filesDelete = stagingAreaDelete.listFiles(File::isFile);
-        for (File file : files) {
-            byte[] cont = Utils.readContents(file);
-            Tools.writeContent(Tools.getObjectFile(Utils.sha1((Object) cont), Repository.GITLET_FILE_DIR), cont);
-            commit.put(file.getName(), Utils.sha1((Object) cont));
-            file.delete();
+        if (files != null) {
+            for (File file : files) {
+                byte[] cont = Utils.readContents(file);
+                Tools.writeContent(Tools.getObjectFile(Utils.sha1((Object) cont), Repository.GITLET_FILE_DIR), cont);
+                commit.put(file.getName(), Utils.sha1((Object) cont));
+                file.delete();
+            }
         }
-        if (filesDelete != null && filesDelete.length > 0) {
+        if (filesDelete != null) {
             for (File file : filesDelete) {
                 commit.remove(file.getName());
                 file.delete();
