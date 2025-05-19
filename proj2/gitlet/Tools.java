@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static gitlet.Utils.UID_LENGTH;
+import static gitlet.Utils.readContentsAsString;
+
 public class Tools {
 
 
@@ -147,5 +150,20 @@ public class Tools {
     public static void writeContent(File f, byte[] content) {
         createFile(f);
         Utils.writeContents(f, (Object) content);
+    }
+
+    /**
+     * 读取head中的值，并返回（由于比较常用，所以单独提出来）
+     * 此函数会顺便检查是否存在.gitlet目录
+     * @return head中的内容
+     */
+    public static String readHead() {
+        return readContentsAsString(Repository.GITLET_HEAD);
+    }
+    public static String readHeadCommitId() {
+        return readHead().substring(0, Utils.UID_LENGTH);
+    }
+    public static String readHeadBranch() {
+        return readHead().substring(Utils.UID_LENGTH);
     }
 }

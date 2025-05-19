@@ -91,17 +91,17 @@ public class Repository {
             throw new GitletException("No changes added to the commit." );
         }
 
-        String Head = readHead();
-        Commit lastCommit = Commit.readCommit(Tools.getObjectFile(Head.substring(0, UID_LENGTH), GITLET_FILE_DIR));
-        Commit commit = new Commit(msg, Head.substring(0,Utils.UID_LENGTH), lastCommit);
-        File branchName = Utils.join(GITLET_BRANCHES_DIR,Head.substring(Utils.UID_LENGTH));
+        String HeadCommit = Tools.readHeadCommitId();
+        Commit lastCommit = Commit.readCommit(Tools.getObjectFile(HeadCommit, GITLET_FILE_DIR));
+        Commit commit = new Commit(msg, HeadCommit, lastCommit);
+        File branchName = Utils.join(GITLET_BRANCHES_DIR, HeadCommit);
         Branch branch = Branch.readBranch(branchName);
         //写入文件,并清空tem
         commit = StagingArea.updateCommit(commit);
         //写入commit
         commit.writeCommit(Tools.getObjectFile(commit.toString(), GITLET_FILE_DIR));
         //更新head
-        Utils.writeContents(GITLET_HEAD, commit.toString()+Head.substring(UID_LENGTH));
+        Utils.writeContents(GITLET_HEAD, commit.toString() + HeadCommit);
         //更新branch,
         branch.add(commit.toString());
         branch.writeBranch(branchName);
@@ -112,8 +112,8 @@ public class Repository {
 
         boolean find = false;
         File file = Utils.join(CWD, fileName);
-        String Head = readHead();
-        Commit commit = Commit.readCommit(Tools.getObjectFile(Head.substring(0, UID_LENGTH), GITLET_FILE_DIR));
+        String Head = Tools.readHeadCommitId();
+        Commit commit = Commit.readCommit(Tools.getObjectFile(Head, GITLET_FILE_DIR));
         if (commit.fileExists(fileName)) {
             StagingArea.addStagingAreaDelete(file);
             file.delete();
@@ -126,7 +126,7 @@ public class Repository {
     }
     public static void log() {
         checkGitlet();
-        String headCommitId = readHead().substring(0, Utils.UID_LENGTH);
+        String headCommitId = Tools.readHeadCommitId();
         Commit current = Commit.readCommit(Tools.getObjectFile(headCommitId, GITLET_FILE_DIR));
         Commit.printLog(current);
     }
@@ -162,6 +162,45 @@ public class Repository {
     public static void status() {
         checkGitlet();
 
+        //=== Branches ===
+        System.out.println("=== Branches ===");
+        List<String> branchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
+        String nowBranch = Tools.readHeadBranch();
+        if (branchNames != null) {
+            for (String branchName : branchNames) {
+                if (branchName.equals(nowBranch)) {
+                    System.out.print("*");
+                }
+                System.out.println(branchName);
+            }
+        }
+        System.out.println();
+        //=== Staged Files ===
+        System.out.println("=== Staged Files ===");
+        List<String> stagedFileNames = Utils.plainFilenamesIn(GITLET_TEM_DIR);
+        if (stagedFileNames != null) {
+            for (String stagedFileName : stagedFileNames) {
+                System.out.println(stagedFileName);
+            }
+        }
+        System.out.println();
+        //=== Removed Files ===
+        System.out.println("=== Removed Files ===");
+        List<String> removedFileNames = Utils.plainFilenamesIn(GITLET_TEM_DIR_DELETE);
+        if (removedFileNames != null) {
+            for (String removedFileName : removedFileNames) {
+                System.out.println(removedFileName);
+            }
+        }
+        System.out.println();
+        //=== Modifications Not Staged For Commit ===
+        System.out.println("=== Modifications Not Staged For Commit ===");
+
+        System.out.println();
+        //=== Untracked Files ===
+        System.out.println("=== Untracked Files ===");
+
+        System.out.println();
     }
 
     public static void checkout(String ... msg) {
@@ -200,12 +239,5 @@ public class Repository {
         }
     }
 
-    /**
-     * 读取head中的值，并返回（由于比较常用，所以单独提出来）
-     * 此函数会顺便检查是否存在.gitlet目录
-     * @return head中的内容
-     */
-    private static String readHead() {
-        return readContentsAsString(GITLET_HEAD);
-    }
+
 }
