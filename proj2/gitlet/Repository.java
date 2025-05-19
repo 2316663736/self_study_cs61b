@@ -94,7 +94,7 @@ public class Repository {
         String HeadCommit = Tools.readHeadCommitId();
         Commit lastCommit = Commit.readCommit(Tools.getObjectFile(HeadCommit, GITLET_FILE_DIR));
         Commit commit = new Commit(msg, HeadCommit, lastCommit);
-        File branchName = Utils.join(GITLET_BRANCHES_DIR, HeadCommit);
+        File branchName = Utils.join(GITLET_BRANCHES_DIR, Tools.readHeadBranch());
         Branch branch = Branch.readBranch(branchName);
         //写入文件,并清空tem
         commit = StagingArea.updateCommit(commit);
