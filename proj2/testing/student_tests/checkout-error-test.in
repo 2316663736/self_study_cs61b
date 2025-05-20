@@ -1,0 +1,71 @@
+# 检查检出命令的各种错误情况
+
+# 标准命令和定义
+> init
+<<<
+D DATE "Date: \w\w\w \w\w\w \d+ \d\d:\d\d:\d\d \d\d\d\d [-+]\d\d\d\d"
+# 状态日志标题RE。在其唯一组中捕获提交ID。
+D COMMIT_HEAD "commit ([a-f0-9]+)[ \t]*\n(?:Merge:\s+[0-9a-f]{7}\s+[0-9a-f]{7}[ ]*\n)?${DATE}"
+# 完整的日志条目。捕获条目。假设日志消息不包含"==="
+D COMMIT_LOG "(===[ ]*\ncommit [a-f0-9]+[ ]*\n(?:Merge:\s+[0-9a-f]{7}\s+[0-9a-f]{7}[ ]*\n)?${DATE}[ ]*\n(?:.|\n)*?(?=\Z|\n===))"
+# 任意一行文本（即使使用?s也有效）
+D ARBLINE "[^\n]*(?=\n|\Z)"
+# 零个或多个任意完整文本行。
+D ARBLINES "(?:(?:.|\n)*(?:\n|\Z)|\A|\Z)"
+
+# 创建并提交文件的两个版本
++ wug.txt wug.txt
+> add wug.txt
+<<<
+> commit "version 1 of wug.txt"
+<<<
++ wug.txt notwug.txt
+> add wug.txt
+<<<
+> commit "version 2 of wug.txt"
+<<<
+
+# 获取日志记录以获取提交ID
+> log
+===
+${COMMIT_HEAD}
+version 2 of wug.txt
+
+===
+${COMMIT_HEAD}
+version 1 of wug.txt
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+
+# 保存提交ID
+D UID2 "${1}"
+D UID1 "${2}"
+
+# 测试检出不存在的文件(应该失败)
+> checkout ${UID2} -- warg.txt
+File does not exist in that commit.
+<<<
+
+# 测试从不存在的提交检出(应该失败)
+> checkout 5d0bc169a1737e955f9cb26b9e7aa21e4afd4d12 -- wug.txt
+No commit with that id exists.
+<<<
+
+# 测试格式错误的检出命令(应该失败)
+> checkout ${UID2} ++ wug.txt
+Incorrect operands.
+<<<
+
+# 测试检出不存在的分支(应该失败)
+> checkout foobar
+No such branch exists.
+<<<
+
+# 测试检出当前分支(应该失败)
+> checkout master
+No need to checkout the current branch.
+<<<

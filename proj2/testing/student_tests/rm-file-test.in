@@ -1,0 +1,45 @@
+# 检查删除普通文件后通过rm命令暂存删除
+
+# 标准命令和定义
+> init
+<<<
+D DATE "Date: \w\w\w \w\w\w \d+ \d\d:\d\d:\d\d \d\d\d\d [-+]\d\d\d\d"
+# 状态日志标题RE。在其唯一组中捕获提交ID。
+D COMMIT_HEAD "commit ([a-f0-9]+)[ \t]*\n(?:Merge:\s+[0-9a-f]{7}\s+[0-9a-f]{7}[ ]*\n)?${DATE}"
+# 完整的日志条目。捕获条目。假设日志消息不包含"==="
+D COMMIT_LOG "(===[ ]*\ncommit [a-f0-9]+[ ]*\n(?:Merge:\s+[0-9a-f]{7}\s+[0-9a-f]{7}[ ]*\n)?${DATE}[ ]*\n(?:.|\n)*?(?=\Z|\n===))"
+# 任意一行文本（即使使用?s也有效）
+D ARBLINE "[^\n]*(?=\n|\Z)"
+# 零个或多个任意完整文本行。
+D ARBLINES "(?:(?:.|\n)*(?:\n|\Z)|\A|\Z)"
+
+# 初始化并添加两个文件
++ f.txt wug.txt
++ g.txt notwug.txt
+> add g.txt
+<<<
+> add f.txt
+<<<
+> commit "Two files"
+<<<
+
+# 删除文件并使用rm命令
+- f.txt
+> rm f.txt
+<<<
+
+# 检查状态确认文件已被暂存为删除
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+
+=== Removed Files ===
+f.txt
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<

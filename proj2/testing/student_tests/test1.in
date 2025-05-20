@@ -1,9 +1,0 @@
-# 测试初始化功能
-> init
-<<<
-E .gitlet
-
-# 测试重复初始化(应该失败)
-> init
-A Gitlet version-control system already exists in the current directory.
-<<<

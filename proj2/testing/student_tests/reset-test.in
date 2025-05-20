@@ -1,0 +1,164 @@
+# 检查reset命令的功能
+
+# 标准命令和定义
+> init
+<<<
+D DATE "Date: \w\w\w \w\w\w \d+ \d\d:\d\d:\d\d \d\d\d\d [-+]\d\d\d\d"
+# 状态日志标题RE。在其唯一组中捕获提交ID。
+D COMMIT_HEAD "commit ([a-f0-9]+)[ \t]*\n(?:Merge:\s+[0-9a-f]{7}\s+[0-9a-f]{7}[ ]*\n)?${DATE}"
+# 完整的日志条目。捕获条目。假设日志消息不包含"==="
+D COMMIT_LOG "(===[ ]*\ncommit [a-f0-9]+[ ]*\n(?:Merge:\s+[0-9a-f]{7}\s+[0-9a-f]{7}[ ]*\n)?${DATE}[ ]*\n(?:.|\n)*?(?=\Z|\n===))"
+# 任意一行文本（即使使用?s也有效）
+D ARBLINE "[^\n]*(?=\n|\Z)"
+# 零个或多个任意完整文本行。
+D ARBLINES "(?:(?:.|\n)*(?:\n|\Z)|\A|\Z)"
+
+# 初始化并添加两个文件
++ f.txt wug.txt
++ g.txt notwug.txt
+> add g.txt
+<<<
+> add f.txt
+<<<
+> commit "Two files"
+<<<
+
+# 创建分支并在主分支上添加和删除文件
+> branch other
+<<<
++ h.txt wug2.txt
+> add h.txt
+<<<
+> rm g.txt
+<<<
+> commit "Add h.txt and remove g.txt"
+<<<
+
+# 切换到另一个分支并修改文件
+> checkout other
+<<<
+> rm f.txt
+<<<
++ k.txt wug3.txt
+> add k.txt
+<<<
+> commit "Add k.txt and remove f.txt"
+<<<
+
+# 检查日志并保存提交ID
+> log
+===
+${COMMIT_HEAD}
+Add k.txt and remove f.txt
+
+===
+${COMMIT_HEAD}
+Two files
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+D INIT "${3}"
+D TWO "${2}"
+D OTHER1 "${1}"
+
+# 切换回主分支
+> checkout master
+<<<
+> log
+===
+${COMMIT_HEAD}
+Add h.txt and remove g.txt
+
+===
+${COMMIT_HEAD}
+Two files
+
+===
+${COMMIT_HEAD}
+initial commit
+<<<*
+D MASTER1 "${1}"
+
+# 添加新文件然后重置到早期提交
++ m.txt wug.txt
+> add m.txt
+<<<
+> reset ${TWO}
+<<<
+
+# 检查状态
+> status
+=== Branches ===
+\*master
+other
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+(m\.txt\n)?\s*
+<<<*
+
+# 检查日志
+> log
+===
+${COMMIT_HEAD}
+Two files
+
+===
+${COMMIT_HEAD}
+initial commit
+<<<*
+
+# 切换到other分支并检查日志
+> checkout other
+<<<
+> log
+===
+${COMMIT_HEAD}
+Add k.txt and remove f.txt
+
+===
+${COMMIT_HEAD}
+Two files
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+
+# 切换回master分支并重置到之前的提交
+> checkout master
+<<<
+> log
+===
+${COMMIT_HEAD}
+Two files
+
+===
+${COMMIT_HEAD}
+initial commit
+<<<*
+> reset ${MASTER1}
+<<<
+> log
+===
+${COMMIT_HEAD}
+Add h.txt and remove g.txt
+
+===
+${COMMIT_HEAD}
+Two files
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
