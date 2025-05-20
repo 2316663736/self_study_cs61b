@@ -114,7 +114,7 @@ public class Commit implements Dumpable {
      */
     @Override
     public void dump() {
-        Formatter formatter = new Formatter();
+        Formatter formatter = new Formatter(Locale.US);
         formatter.format("Date: %ta %tb %td %tT %tY %tz",date, date, date, date, date, date);
         String formattedDate = formatter.toString();
         formatter.close();
