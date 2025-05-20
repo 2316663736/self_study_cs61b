@@ -233,6 +233,8 @@ public class Repository {
             Branch outBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, msg[1]));
             StagingArea.deleteStagingArea();//清楚暂存区
             changeToCommit(outBranch.getNewest());
+            String newHead = outBranch.getNewest() + msg[1];
+            Utils.writeContents(GITLET_HEAD, newHead);
         } else if (msg.length == 3 || msg.length == 4) {
             String fileName = msg[msg.length - 1];
             String commitID = null;
