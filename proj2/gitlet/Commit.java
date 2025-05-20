@@ -115,14 +115,14 @@ public class Commit implements Dumpable {
     @Override
     public void dump() {
         Formatter formatter = new Formatter(Locale.US);
-        formatter.format("Date: %ta %tb %td %tT %tY %tz",date, date, date, date, date, date);
+        formatter.format("Date: %ta %tb %td %tT %tY %tz", date, date, date, date, date, date);
         String formattedDate = formatter.toString();
         formatter.close();
 
         System.out.println("===");
         System.out.println("commit " + Utils.sha1((Object) Utils.serialize(this)));
         if (merge != null) {
-            System.out.println("Merge: " + father.substring(0,7) + " " + merge.substring(0,7));
+            System.out.println("Merge: " + father.substring(0, 7) + " " + merge.substring(0, 7));
         }
         System.out.println(formattedDate);
         System.out.println(message);
@@ -187,7 +187,8 @@ public class Commit implements Dumpable {
             if (nowCommit.father == null) {
                 break;
             }
-            nowCommit = readCommit(Tools.getObjectFile(nowCommit.father, Repository.GITLET_FILE_DIR));
+            nowCommit = readCommit(Tools.getObjectFile(nowCommit.father,
+                    Repository.GITLET_FILE_DIR));
         }
         return res;
     }

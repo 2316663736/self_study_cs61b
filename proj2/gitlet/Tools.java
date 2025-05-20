@@ -70,7 +70,7 @@ public class Tools {
      * @param shaPrefix SHA-1前缀
      * @return 完整的SHA-1哈希值，如果没找到或找到多个匹配则返回null
      */
-    public static String getFullSha1(String shaPrefix, File FILE_DIR) {
+    public static String getFullSha1(String shaPrefix, File fileDirectory) {
         if (shaPrefix == null || shaPrefix.length() < 1) {
             return null;
         }
@@ -80,7 +80,7 @@ public class Tools {
 
         // 如果已经是完整的SHA-1，直接检查是否存在
         if (shaPrefix.length() == Utils.UID_LENGTH) {
-            File objFile = getObjectFile(shaPrefix, FILE_DIR);
+            File objFile = getObjectFile(shaPrefix, fileDirectory);
             return objFile.exists() ? shaPrefix : null;
         }
         if (!isValidSha1(shaPrefix, false)) {
@@ -89,7 +89,7 @@ public class Tools {
 
         // 获取前两位作为目录名
         String dirPrefix = shaPrefix.length() >= 2 ? shaPrefix.substring(0, 2) : shaPrefix;
-        File objDir = Utils.join(FILE_DIR, dirPrefix);
+        File objDir = Utils.join(fileDirectory, dirPrefix);
 
         // 如果目录不存在，则没有匹配
         if (!objDir.exists() || !objDir.isDirectory()) {
@@ -116,7 +116,7 @@ public class Tools {
         } else if (matchedShas.size() > 1) {
             // 多个匹配，返回null或抛出异常
             // 如果希望直接报错，可以改为:
-             throw new GitletException("Ambiguous prefix: " + shaPrefix + ".");
+            throw new GitletException("Ambiguous prefix: " + shaPrefix + ".");
 //            return null;
         } else {
             return null;
@@ -128,16 +128,16 @@ public class Tools {
      * @param sha1 完整的SHA-1哈希值
      * @return 对象文件
      */
-    public static File getObjectFile(String sha1, File FILE_DIR) {
+    public static File getObjectFile(String sha1, File fileDirectory) {
 
-        if (! isValidSha1(sha1, true)) {
+        if (!isValidSha1(sha1, true)) {
             throw new GitletException("Invalid SHA-1: " + sha1 + ".");
         }
 
         String dirName = sha1.substring(0, 2);
         String fileName = sha1.substring(2);
 
-        return Utils.join(FILE_DIR, dirName, fileName);
+        return Utils.join(fileDirectory, dirName, fileName);
     }
 
     /**

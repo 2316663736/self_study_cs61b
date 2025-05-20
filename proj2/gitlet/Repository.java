@@ -54,12 +54,13 @@ public class Repository {
     /**
      * 暂存目录下的即将被取消跟踪的文件
      */
-    public static final File GITLET_TEM_DIR_DELETE = Utils.join(GITLET_TEM_DIR,"delete");
+    public static final File GITLET_TEM_DIR_DELETE = Utils.join(GITLET_TEM_DIR, "delete");
 
     /*  fill in the rest of this class. */
     public static void init() {
         if (gitletExist()) {
-            throw new GitletException("A Gitlet version-control system already exists in the current directory.");
+            throw new GitletException("A Gitlet version-control system" +
+                    " already exists in the current directory.");
         }
         Commit init = new Commit("initial commit", new Date(0), null);
         String commitId = init.toString();
@@ -86,7 +87,7 @@ public class Repository {
     public static void commit(String msg) {
         checkGitlet();
         if (!StagingArea.haveChangeInStagingArea()) {
-            throw new GitletException("No changes added to the commit." );
+            throw new GitletException("No changes added to the commit.");
         }
 
         String headCommit = Tools.readHeadCommitId();
@@ -111,17 +112,17 @@ public class Repository {
 
         boolean find = false;
         File file = Utils.join(CWD, fileName);
-        String Head = Tools.readHeadCommitId();
-        Commit commit = Commit.readCommit(Tools.getObjectFile(Head, GITLET_FILE_DIR));
+        String headCommitId = Tools.readHeadCommitId();
+        Commit commit = Commit.readCommit(Tools.getObjectFile(headCommitId, GITLET_FILE_DIR));
         if (commit.fileExists(fileName)) {
             StagingArea.addStagingAreaDelete(file);
-            file.delete();
             find = true;
         }
         find = StagingArea.removeStagingArea(file) || find;
         if (!find) {
             throw new GitletException("No reason to remove the file.");
         }
+        file.delete();
     }
     public static void log() {
         checkGitlet();
@@ -136,7 +137,8 @@ public class Repository {
         if (branchNames != null) {
             for (String fileName : branchNames) {
                 Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, fileName));
-                Commit currentCommit = Commit.readCommit(Tools.getObjectFile(nowBranch.getNewest(), GITLET_FILE_DIR));
+                Commit currentCommit = Commit.readCommit(
+                        Tools.getObjectFile(nowBranch.getNewest(), GITLET_FILE_DIR));
                 Commit.printLog(currentCommit);
             }
         }
@@ -149,7 +151,8 @@ public class Repository {
         if (branchNames != null) {
             for (String fileName : branchNames) {
                 Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, fileName));
-                Commit currentCommit = Commit.readCommit(Tools.getObjectFile(nowBranch.getNewest(), GITLET_FILE_DIR));
+                Commit currentCommit = Commit.readCommit(Tools.getObjectFile(
+                        nowBranch.getNewest(), GITLET_FILE_DIR));
                 List<String> res = Commit.find(commitMessage, currentCommit);
                 for (String re : res) {
                     System.out.println(re);
@@ -225,13 +228,14 @@ public class Repository {
 
             if (!Branch.branchExists(msg[1])) {
                 throw new GitletException("No such branch exists.");
-            }else if (Tools.readHeadBranch().equals(msg[1])) {
+            } else if (Tools.readHeadBranch().equals(msg[1])) {
                 throw new GitletException("No need to checkout the current branch.");
             } else if (anyFileUntracked()) {
-                throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
+                throw new GitletException("There is an untracked file in the way; delete it, " +
+                        "or add and commit it first.");
             }
             Branch outBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, msg[1]));
-            StagingArea.deleteStagingArea();//清楚暂存区
+            StagingArea.deleteStagingArea();  //清除暂存区
             changeToCommit(outBranch.getNewest());
             String newHead = outBranch.getNewest() + msg[1];
             Utils.writeContents(GITLET_HEAD, newHead);
@@ -266,7 +270,8 @@ public class Repository {
         if (Branch.branchExists(branchName)) {
             throw new GitletException("A branch with that name already exists.");
         }
-        Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, Tools.readHeadBranch()));
+        Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR,
+                Tools.readHeadBranch()));
         nowBranch.writeBranch(Utils.join(GITLET_BRANCHES_DIR, branchName));
     }
 
@@ -296,7 +301,8 @@ public class Repository {
             throw new GitletException("No commit with that id exists.");
         }
         if (anyFileUntracked()) {
-            throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
+            throw new GitletException("There is an untracked file in the way;" +
+                    " delete it, or add and commit it first.");
         }
         changeToCommit(commitID);
         String newHead = commitID + branch;
@@ -317,15 +323,17 @@ public class Repository {
             return;
         }
         //sha1不合法
-        if (!Tools.isValidSha1(sha1OfFile, true))
+        if (!Tools.isValidSha1(sha1OfFile, true)) {
             throw new GitletException("Sha1 " + sha1OfFile + " is not valid.");
+        }
         byte[] con = Utils.readContents(Tools.getObjectFile(sha1OfFile, GITLET_FILE_DIR));
         Utils.writeContents(pathToWrite, (Object) con);
     }
 
     private static void changeToCommit(String commitID) {
-        if (!Tools.isValidSha1(commitID, true))
+        if (!Tools.isValidSha1(commitID, true)) {
             throw new GitletException("Sha1 " + commitID + " is not valid.");
+        }
         Commit tarCommit = Commit.readCommit(Tools.getObjectFile(commitID, GITLET_FILE_DIR));
         List<String> tarFiles = tarCommit.getAllFiles();
         List<String> nowFileNames = Utils.plainFilenamesIn(CWD);
@@ -334,7 +342,8 @@ public class Repository {
             if (tarFiles == null || !tarFiles.contains(fileName)) {
                 changeOneFileCWD(fileName, null);
             } else if (nowFileNames != null && nowFileNames.contains(fileName)) {
-                if (!Tools.compareSHA1ofFile(Utils.join(CWD, fileName), Utils.join(GITLET_FILE_DIR, fileName))) {
+                if (!Tools.compareSHA1ofFile(Utils.join(CWD, fileName),
+                        Utils.join(GITLET_FILE_DIR, fileName))) {
                     changeOneFileCWD(fileName, tarCommit.getFileSHA(fileName));
                 }
             } else {
@@ -375,7 +384,8 @@ public class Repository {
         //暂存文件
         List<String> stagedFileNames = Utils.plainFilenamesIn(GITLET_TEM_DIR);
         //上述三者文件
-        List<String> allFileNames = Tools.mergeAndSort(nowFileNames, stagedFileNames, commitFileNames);
+        List<String> allFileNames = Tools.mergeAndSort(nowFileNames,
+                stagedFileNames, commitFileNames);
         //rm指令删除的文件，为了判断delete类型
         List<String> deletedFileNames = Utils.plainFilenamesIn(GITLET_TEM_DIR_DELETE);
         for (String fileName : allFileNames) {
@@ -385,11 +395,13 @@ public class Repository {
                     temp = "deleted";
                 }
             } else if (stagedFileNames != null && stagedFileNames.contains(fileName)) {
-                if (!Tools.compareSHA1ofFile(Utils.join(CWD, fileName), Utils.join(GITLET_TEM_DIR, fileName))) {
+                if (!Tools.compareSHA1ofFile(Utils.join(CWD, fileName),
+                        Utils.join(GITLET_TEM_DIR, fileName))) {
                     temp = "modified";
                 }
             } else if (commitFileNames != null && commitFileNames.contains(fileName)) {
-                if (!Tools.compareSHA1ofFile(Utils.join(CWD, fileName), nowCommit.getFileSHA(fileName))) {
+                if (!Tools.compareSHA1ofFile(Utils.join(CWD, fileName),
+                        nowCommit.getFileSHA(fileName))) {
                     temp = "modified";
                 }
             } else {
@@ -412,7 +424,7 @@ public class Repository {
 
     private  static String findBranchOfCommit(String commitID) {
         List<String> branchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
-        if (branchNames != null ) {
+        if (branchNames != null) {
             for (String branchName : branchNames) {
                 Branch now = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, branchName));
                 if (now.containsCommitID(commitID)) {
