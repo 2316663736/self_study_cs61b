@@ -245,10 +245,13 @@ public class Repository {
             String commitID = null;
             if (msg.length == 3) {
                 if (!msg[1].equals("--")) {
-                    throw new GitletException("Invalid checkout operand.");
+                    throw new GitletException("Incorrect operands.");
                 }
                 commitID = Tools.readHeadCommitId();
             } else {
+                if (!msg[2].equals("--")) {
+                    throw new GitletException("Incorrect operands.");
+                }
                 try {
                     commitID = Tools.getFullSha1(msg[1], GITLET_FILE_DIR);
                     if (findBranchOfCommit(commitID) == null) {
