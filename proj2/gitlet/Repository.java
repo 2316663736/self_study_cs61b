@@ -299,6 +299,8 @@ public class Repository {
             throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
         }
         changeToCommit(commitID);
+        String newHead = commitID + branch;
+        Utils.writeContents(GITLET_HEAD, newHead);
     }
 
     public static void merge(String branchName) {
