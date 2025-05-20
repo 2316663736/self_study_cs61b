@@ -4,7 +4,7 @@ package gitlet;
 import static gitlet.Tools.*;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
+ *  @author qianye
  */
 public class Main {
 
