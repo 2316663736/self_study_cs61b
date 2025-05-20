@@ -320,6 +320,35 @@ public class Repository {
     }
 
     public static void merge(String branchName) {
+        // 初始检查
+        checkMergePrerequisites(branchName);
+
+        String currentBranch = Tools.readHeadBranch();
+        Branch current = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, currentBranch));
+        Branch target = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, branchName));
+
+        String currentCommitId = current.getNewest();
+        String targetCommitId = target.getNewest();
+
+        // 检查分裂点和特殊情况
+        handleSplitPointCases(currentCommitId, targetCommitId, branchName);
+
+        // 执行文件合并
+        boolean conflict = mergeFiles(currentCommitId, targetCommitId);
+
+        // 创建合并提交并更新引用
+        createMergeCommit(currentCommitId, targetCommitId, currentBranch, branchName, current);
+
+        // 只有遇到冲突时才输出消息
+        if (conflict) {
+            System.out.println("Encountered a merge conflict.");
+        }
+    }
+
+    /**
+     * 检查合并前的先决条件
+     */
+    private static void checkMergePrerequisites(String branchName) {
         checkGitlet();
         if (StagingArea.haveChangeInStagingArea()) {
             throw new GitletException("You have uncommitted changes.");
@@ -328,20 +357,28 @@ public class Repository {
         if (!Branch.branchExists(branchName)) {
             throw new GitletException("A branch with that name does not exist.");
         }
+        // 检查是否与当前分支相同
         String currentBranch = Tools.readHeadBranch();
         if (currentBranch.equals(branchName)) {
             throw new GitletException("Cannot merge a branch with itself.");
         }
-        Branch current = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, currentBranch));
-        Branch target = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, branchName));
+        // 检查是否有未跟踪文件会被覆盖
+        if (anyFileUntracked()) {
+            throw new GitletException("There is an untracked file in the way; "
+                    + "delete it, or add and commit it first.");
+        }
+    }
 
-        String currentCommitId = current.getNewest();
-        String targetCommitId = target.getNewest();
+    /**
+     * 处理分裂点相关的特殊情况
+     */
+    private static void handleSplitPointCases(String currentCommitId, String targetCommitId, String branchName) {
         // 找到分支的分裂点
         String splitPoint = Commit.findSplitPoint(currentCommitId, targetCommitId);
         if (splitPoint == null) {
             throw new GitletException("No commit with that id exists.");
         }
+
         // 处理特殊情况
         if (splitPoint.equals(targetCommitId)) {
             // 指定分支是当前分支的祖先
@@ -352,17 +389,20 @@ public class Repository {
             checkout(branchName);
             throw new GitletException("Current branch fast-forwarded.");
         }
-        // 检查是否有未跟踪文件会被覆盖
-        if (anyFileUntracked()) {
-            throw new GitletException("There is an untracked file in the way;"
-                    + " delete it, or add and commit it first.");
-        }
+    }
+
+    /**
+     * 执行文件合并，返回是否有冲突
+     */
+    private static boolean mergeFiles(String currentCommitId, String targetCommitId) {
         boolean conflict = false;
-        Commit currentCommit = Commit.readCommit(Tools.getObjectFile(currentCommitId,
-                GITLET_FILE_DIR));
-        Commit targetCommit = Commit.readCommit(Tools.getObjectFile(targetCommitId,
-                GITLET_FILE_DIR));
+
+        // 获取三个提交
+        Commit currentCommit = Commit.readCommit(Tools.getObjectFile(currentCommitId, GITLET_FILE_DIR));
+        Commit targetCommit = Commit.readCommit(Tools.getObjectFile(targetCommitId, GITLET_FILE_DIR));
+        String splitPoint = Commit.findSplitPoint(currentCommitId, targetCommitId);
         Commit splitCommit = Commit.readCommit(Tools.getObjectFile(splitPoint, GITLET_FILE_DIR));
+
         // 获取所有文件名
         Set<String> allFiles = new HashSet<>();
         allFiles.addAll(currentCommit.getAllFiles());
@@ -370,64 +410,91 @@ public class Repository {
         allFiles.addAll(splitCommit.getAllFiles());
 
         for (String fileName : allFiles) {
-            String currentFileSHA = currentCommit.getFileSHA(fileName);
-            String targetFileSHA = targetCommit.getFileSHA(fileName);
-            String splitFileSHA = splitCommit.getFileSHA(fileName);
-
-            if (Objects.equals(currentFileSHA, splitFileSHA)
-                    && !Objects.equals(targetFileSHA, splitFileSHA)) {
-                // 1. 目标分支修改，当前分支未修改
-                if (targetFileSHA != null) {
-                    // 目标分支更新了文件
-                    changeOneFileCWD(fileName, targetFileSHA);
-                    add(fileName);
-                } else {
-                    // 目标分支删除了文件
-                    rm(fileName);
-                }
-            } else if (!Objects.equals(currentFileSHA, splitFileSHA)
-                    && Objects.equals(targetFileSHA, splitFileSHA)) {
-                // 2. 当前分支修改，目标分支未修改
-                // 保持当前分支状态，不需要操作
-                continue;
-            }  else if (Objects.equals(currentFileSHA, targetFileSHA)) {
-                // 3. 两个分支没有变化，或以相同方式变化
-                // 保持当前状态，不需要操作
-                continue;
-            } else {
-                // 4. 冲突情况：两个分支都修改且不同，或一个修改一个删除
-                // 冲突情况
-                conflict = true;
-
-                // 创建冲突内容
-                String currentContent = "";
-                if (currentFileSHA != null) {
-                    currentContent = new String(Utils.readContents(
-                            Tools.getObjectFile(currentFileSHA, GITLET_FILE_DIR)
-                    ));
-                }
-
-                String targetContent = "";
-                if (targetFileSHA != null) {
-                    targetContent = new String(Utils.readContents(
-                            Tools.getObjectFile(targetFileSHA, GITLET_FILE_DIR)
-                    ));
-                }
-
-                // 创建冲突标记内容
-                String conflictContent = "<<<<<<< HEAD\n"
-                        + currentContent + "=======\n"
-                        + targetContent + ">>>>>>>\n";
-
-                // 写入工作目录并暂存
-                File file = Utils.join(CWD, fileName);
-                Utils.writeContents(file, conflictContent);
-                add(fileName);
-            }
+            conflict = processFileMerge(fileName, currentCommit, targetCommit, splitCommit) || conflict;
         }
 
+        return conflict;
+    }
+
+    /**
+     * 处理单个文件的合并逻辑
+     */
+    private static boolean processFileMerge(String fileName, Commit currentCommit,
+                                            Commit targetCommit, Commit splitCommit) {
+        String currentFileSHA = currentCommit.getFileSHA(fileName);
+        String targetFileSHA = targetCommit.getFileSHA(fileName);
+        String splitFileSHA = splitCommit.getFileSHA(fileName);
+
+        if (Objects.equals(currentFileSHA, splitFileSHA)
+                && !Objects.equals(targetFileSHA, splitFileSHA)) {
+            // 1. 目标分支修改，当前分支未修改
+            if (targetFileSHA != null) {
+                // 目标分支更新了文件
+                changeOneFileCWD(fileName, targetFileSHA);
+                add(fileName);
+            } else {
+                // 目标分支删除了文件
+                rm(fileName);
+            }
+            return false;
+        } else if (!Objects.equals(currentFileSHA, splitFileSHA)
+                && Objects.equals(targetFileSHA, splitFileSHA)) {
+            // 2. 当前分支修改，目标分支未修改
+            // 保持当前分支状态，不需要操作
+            return false;
+        }  else if (Objects.equals(currentFileSHA, targetFileSHA)) {
+            // 3. 两个分支没有变化，或以相同方式变化
+            // 保持当前状态，不需要操作
+            return false;
+        } else {
+            // 4. 冲突情况：两个分支都修改且不同，或一个修改一个删除
+            return handleFileConflict(fileName, currentFileSHA, targetFileSHA);
+        }
+    }
+
+    /**
+     * 处理文件冲突
+     */
+    private static boolean handleFileConflict(String fileName, String currentFileSHA, String targetFileSHA) {
+        // 创建冲突内容
+        String currentContent = "";
+        if (currentFileSHA != null) {
+            currentContent = new String(Utils.readContents(
+                    Tools.getObjectFile(currentFileSHA, GITLET_FILE_DIR)
+            ));
+        }
+
+        String targetContent = "";
+        if (targetFileSHA != null) {
+            targetContent = new String(Utils.readContents(
+                    Tools.getObjectFile(targetFileSHA, GITLET_FILE_DIR)
+            ));
+        }
+
+        // 创建冲突标记内容
+        String conflictContent = "<<<<<<< HEAD\n"
+                + currentContent + "=======\n"
+                + targetContent + ">>>>>>>\n";
+
+        // 写入工作目录并暂存
+        File file = Utils.join(CWD, fileName);
+        Utils.writeContents(file, conflictContent);
+        add(fileName);
+
+        return true; // 返回有冲突
+    }
+
+    /**
+     * 创建合并提交并更新引用
+     */
+    private static void createMergeCommit(String currentCommitId, String targetCommitId,
+                                          String currentBranch,
+                                          String targetBranch, Branch current) {
+        Commit currentCommit = Commit.readCommit(Tools.getObjectFile(currentCommitId,
+                GITLET_FILE_DIR));
+
         // 创建合并提交
-        String message = "Merged " + branchName + " into " + currentBranch + ".";
+        String message = "Merged " + targetBranch + " into " + currentBranch + ".";
         Commit mergeCommit = new Commit(message, currentCommitId, targetCommitId, currentCommit);
         mergeCommit = StagingArea.updateCommit(mergeCommit);
         mergeCommit.writeCommit(Tools.getObjectFile(mergeCommit.toString(), GITLET_FILE_DIR));
@@ -436,12 +503,6 @@ public class Repository {
         current.add(mergeCommit.toString());
         current.writeBranch(Utils.join(GITLET_BRANCHES_DIR, currentBranch));
         Utils.writeContents(GITLET_HEAD, mergeCommit.toString() + currentBranch);
-
-        // 只有遇到冲突时才输出消息
-        if (conflict) {
-            System.out.println("Encountered a merge conflict.");
-        }
-        // 成功合并没有输出
     }
 
     private static void changeOneFileCWD(String fileName, String sha1OfFile) {
