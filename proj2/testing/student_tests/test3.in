@@ -1,33 +1,60 @@
-# 测试文件: test-checkout-file.in
+# 包含定义文件
 I definitions.inc
+
+# 初始化仓库
 > init
 <<<
+
+# 创建并添加文件
 + wug.txt wug.txt
 > add wug.txt
 <<<
-> commit "added original wug.txt"
+
+# 测试提交
+> commit "added wug"
 <<<
-+ wug.txt notwug.txt
-> add wug.txt
-<<<
-> commit "changed wug.txt"
-<<<
+
+# 检查日志
 > log
 ===
 ${COMMIT_HEAD}
-changed wug.txt
-
-===
-${COMMIT_HEAD}
-added original wug.txt
+added wug
 
 ===
 ${COMMIT_HEAD}
 initial commit
 
 <<<*
-# 保存第二个提交ID
-D COMMIT_ID_2 "${2}"
-> checkout ${COMMIT_ID_2} -- wug.txt
+
+# 测试空提交消息(应该失败)
+> commit ""
+Please enter a commit message.
 <<<
-= wug.txt wug.txt
+
+# 测试无暂存更改时提交(应该失败)
+> commit "nothing staged"
+No changes added to the commit.
+<<<
+
+# 测试多个文件提交
++ notwug.txt notwug.txt
+> add notwug.txt
+<<<
+> commit "added another file"
+<<<
+
+# 再次检查日志
+> log
+===
+${COMMIT_HEAD}
+added another file
+
+===
+${COMMIT_HEAD}
+added wug
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*

@@ -1,30 +1,70 @@
-# 测试文件: test-merge-basic.in
+# 包含定义文件
 I definitions.inc
+
+# 初始化仓库
 > init
 <<<
+
+# 创建并提交文件
 + wug.txt wug.txt
 > add wug.txt
 <<<
-> commit "commit on master"
+> commit "version 1"
 <<<
-> branch new-branch
+
+# 修改文件
++ wug.txt notwug.txt
+= wug.txt notwug.txt
+
+# 检出文件 - 从HEAD
+> checkout -- wug.txt
 <<<
-> checkout new-branch
+= wug.txt wug.txt
+
+# 再次修改文件
++ wug.txt notwug.txt
+= wug.txt notwug.txt
+
+# 提交新版本
+> add wug.txt
 <<<
-+ notwug.txt notwug.txt
-> add notwug.txt
+> commit "version 2"
 <<<
-> commit "commit on new-branch"
+
+# 修改文件
++ wug.txt wug.txt
+= wug.txt wug.txt
+
+# 检出文件 - 从特定提交
+> log
+===
+${COMMIT_HEAD}
+version 2
+
+===
+${COMMIT_HEAD}
+version 1
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+
+# 保存提交ID
+D VERSION1_ID "${2}"
+
+# 从特定提交检出文件
+> checkout ${VERSION1_ID} -- wug.txt
 <<<
-> checkout master
+= wug.txt wug.txt
+
+# 测试检出不存在的文件(应该失败)
+> checkout -- nonexistent.txt
+File does not exist in that commit.
 <<<
-+ wug2.txt wug.txt
-> add wug2.txt
+
+# 测试从不存在的提交检出(应该失败)
+> checkout 0123456789abcdef0123456789abcdef01234567 -- wug.txt
+No commit with that id exists.
 <<<
-> commit "another commit on master"
-<<<
-> merge new-branch
-<<<
-E notwug.txt
-E wug.txt
-E wug2.txt

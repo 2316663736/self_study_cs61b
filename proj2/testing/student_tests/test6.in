@@ -1,34 +1,48 @@
-# 测试文件: test-reset.in
+# 包含定义文件
 I definitions.inc
+
+# 初始化仓库
 > init
 <<<
-+ wug.txt wug.txt
-> add wug.txt
-<<<
-> commit "commit 1"
-<<<
-+ notwug.txt notwug.txt
-> add notwug.txt
-<<<
-> commit "commit 2"
-<<<
-# 获取第一个提交的ID
-> log
-===
-${COMMIT_HEAD}
-commit 2
 
-===
-${COMMIT_HEAD}
-commit 1
+# 创建多个提交
++ file1.txt wug.txt
+> add file1.txt
+<<<
+> commit "added file1"
+<<<
 
-===
-${COMMIT_HEAD}
-initial commit
++ file2.txt notwug.txt
+> add file2.txt
+<<<
+> commit "added file2"
+<<<
 
+# 创建具有相同提交消息的提交
++ file3.txt wug.txt
+> add file3.txt
+<<<
+> commit "duplicate message"
+<<<
+
++ file4.txt notwug.txt
+> add file4.txt
+<<<
+> commit "duplicate message"
+<<<
+
+# 测试查找功能 - 唯一消息
+> find "added file1"
+[a-f0-9]{40}
 <<<*
-D COMMIT_ID_1 "${2}"
-> reset ${COMMIT_ID_1}
+
+# 测试查找功能 - 多个匹配
+> find "duplicate message"
+[a-f0-9]{40}
+[a-f0-9]{40}
+<<<*
+
+# 测试查找功能 - 不存在的消息
+> find "nonexistent message"
+Found no commit with that message.
 <<<
-E wug.txt
-* notwug.txt

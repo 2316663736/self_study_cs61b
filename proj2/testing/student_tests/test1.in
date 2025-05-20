@@ -1,62 +1,9 @@
-# 测试文件: test-init-basic.in
-# 测试简单的初始化功能
+# 测试初始化功能
 > init
 <<<
 E .gitlet
 
-# 测试文件: test-add-basic.in
-I definitions.inc
+# 测试重复初始化(应该失败)
 > init
+A Gitlet version-control system already exists in the current directory.
 <<<
-+ wug.txt wug.txt
-> add wug.txt
-<<<
-E .gitlet/tem/wug.txt
-
-# 测试文件: test-commit-basic.in
-I definitions.inc
-> init
-<<<
-+ wug.txt wug.txt
-> add wug.txt
-<<<
-> commit "added wug.txt"
-<<<
-> log
-===
-${COMMIT_HEAD}
-added wug.txt
-
-===
-${COMMIT_HEAD}
-initial commit
-
-<<<*
-
-# 测试文件: test-rm-basic.in
-I definitions.inc
-> init
-<<<
-+ wug.txt wug.txt
-> add wug.txt
-<<<
-> commit "added wug.txt"
-<<<
-> rm wug.txt
-<<<
-* wug.txt
-E .gitlet/tem/delete/wug.txt
-> status
-=== Branches ===
-\*master
-
-=== Staged Files ===
-
-=== Removed Files ===
-wug.txt
-
-=== Modifications Not Staged For Commit ===
-
-=== Untracked Files ===
-
-<<<*

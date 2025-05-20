@@ -1,80 +1,83 @@
-# 测试文件: test-complex-scenario.in
+# 包含定义文件
 I definitions.inc
+
+# 初始化仓库
 > init
 <<<
-+ wug.txt wug.txt
-> add wug.txt
+
+# 创建一系列提交
++ file1.txt wug.txt
+> add file1.txt
 <<<
-> commit "initial wug"
+> commit "commit 1"
 <<<
-> branch dev
+
++ file2.txt notwug.txt
+> add file2.txt
 <<<
-+ notwug.txt notwug.txt
-> add notwug.txt
+> commit "commit 2"
 <<<
-> commit "add notwug to master"
+
++ file3.txt wug.txt
+> add file3.txt
 <<<
-> checkout dev
+> commit "commit 3"
 <<<
-+ wug.txt notwug.txt
-> add wug.txt
-<<<
-> commit "change wug in dev"
-<<<
-+ wug2.txt wug.txt
-> add wug2.txt
-<<<
-> commit "add wug2 to dev"
-<<<
-> checkout master
-<<<
+
+# 获取日志以获取提交ID
 > log
 ===
 ${COMMIT_HEAD}
-add notwug to master
+commit 3
 
 ===
 ${COMMIT_HEAD}
-initial wug
+commit 2
+
+===
+${COMMIT_HEAD}
+commit 1
 
 ===
 ${COMMIT_HEAD}
 initial commit
 
 <<<*
-D MASTER_HEAD "${1}"
-> checkout dev
+
+# 保存提交ID
+D COMMIT2_ID "${2}"
+D COMMIT1_ID "${3}"
+
+# 测试重置到commit 1
+> reset ${COMMIT1_ID}
 <<<
+
+# 确认file2.txt和file3.txt不存在
+* file2.txt
+* file3.txt
+E file1.txt
+
+# 确认日志正确
 > log
 ===
 ${COMMIT_HEAD}
-add wug2 to dev
-
-===
-${COMMIT_HEAD}
-change wug in dev
-
-===
-${COMMIT_HEAD}
-initial wug
+commit 1
 
 ===
 ${COMMIT_HEAD}
 initial commit
 
 <<<*
-D DEV_HEAD "${1}"
-> status
-=== Branches ===
-\*dev
-master
 
-=== Staged Files ===
+# 测试重置到不存在的提交(应该失败)
+> reset 0123456789abcdef0123456789abcdef01234567
+No commit with that id exists.
+<<<
 
-=== Removed Files ===
+# 创建未跟踪文件
++ untracked.txt notwug.txt
 
-=== Modifications Not Staged For Commit ===
-
-=== Untracked Files ===
-
-<<<*
+# 测试重置时有未跟踪文件会被覆盖(应该失败)
+> reset ${COMMIT2_ID}
+There is an untracked file in the way; delete it, or add and commit it first.
+<<<

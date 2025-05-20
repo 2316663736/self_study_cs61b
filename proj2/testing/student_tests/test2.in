@@ -1,26 +1,54 @@
-# 测试文件: test-branch-basic.in
+# 包含定义文件
 I definitions.inc
+
+# 初始化仓库
 > init
 <<<
+
+# 创建文件并添加
 + wug.txt wug.txt
 > add wug.txt
 <<<
-> commit "added wug.txt on master"
+
+# 检查状态确认文件被添加
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+wug.txt
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
 <<<
-> branch new-branch
+
+# 测试添加不存在的文件(应该失败)
+> add nonexistent.txt
+File does not exist.
 <<<
-> checkout new-branch
+
+# 添加文件后修改内容
++ wug.txt notwug.txt
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+wug.txt
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+wug.txt (modified)
+
+=== Untracked Files ===
+
 <<<
-+ notwug.txt notwug.txt
-> add notwug.txt
+
+# 修改后重新添加
+> add wug.txt
 <<<
-> commit "added notwug.txt on new-branch"
-<<<
-> checkout master
-<<<
-* notwug.txt
-E wug.txt
-> checkout new-branch
-<<<
-E notwug.txt
-E wug.txt
