@@ -243,7 +243,7 @@ public class Repository {
                 commitID = Tools.readHeadCommitId();
             } else {
                 try {
-                    commitID = Tools.getFullSha1(msg[2], GITLET_FILE_DIR);
+                    commitID = Tools.getFullSha1(msg[1], GITLET_FILE_DIR);
                     if (findBranchOfCommit(commitID) == null) {
                         throw new GitletException("No such branch.");
                     }
@@ -253,7 +253,7 @@ public class Repository {
             }
             Commit nowCommit = Commit.readCommit(Tools.getObjectFile(commitID, GITLET_FILE_DIR));
             if (!nowCommit.fileExists(fileName)) {
-                throw new GitletException(" File does not exist in that commit.");
+                throw new GitletException("File does not exist in that commit.");
             }
             changeOneFileCWD(fileName, nowCommit.getFileSHA(fileName));
         }
@@ -410,7 +410,7 @@ public class Repository {
         List<String> branchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
         if (branchNames != null ) {
             for (String branchName : branchNames) {
-                Branch now = Branch.readBranch(Utils.join(CWD, branchName));
+                Branch now = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, branchName));
                 if (now.containsCommitID(commitID)) {
                     return branchName;
                 }
