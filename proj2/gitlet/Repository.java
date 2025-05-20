@@ -144,17 +144,21 @@ public class Repository {
 
     public static void find(String commitMessage) {
         checkGitlet();
+        boolean find = false;
         List<String> branchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
         if (branchNames != null) {
             for (String fileName : branchNames) {
                 Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, fileName));
                 Commit currentCommit = Commit.readCommit(Tools.getObjectFile(nowBranch.getNewest(), GITLET_FILE_DIR));
-                String res = Commit.find(commitMessage, currentCommit);
-                if (res != null) {
-                    System.out.println(res);
-                    return;
+                List<String> res = Commit.find(commitMessage, currentCommit);
+                for (String re : res) {
+                    System.out.println(re);
+                    find = true;
                 }
             }
+        }
+        if (find) {
+            return;
         }
         throw new GitletException("Found no commit with that message.");
     }
