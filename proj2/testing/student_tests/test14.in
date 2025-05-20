@@ -1,0 +1,162 @@
+# 包含定义文件
+I definitions.inc
+
+# 初始化仓库
+> init
+<<<
+
+# 测试创建同名但内容不同的文件
++ same-name.txt wug.txt
+> add same-name.txt
+<<<
+> commit "first version"
+<<<
+
+# 修改文件内容
++ same-name.txt notwug.txt
+> add same-name.txt
+<<<
+> commit "second version"
+<<<
+
+# 获取第一个提交的ID
+> log
+===
+${COMMIT_HEAD}
+second version
+
+===
+${COMMIT_HEAD}
+first version
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+
+# 保存第一个版本的提交ID
+D FIRST_VERSION_ID "${2}"
+
+# 检出第一个版本的文件
+> checkout ${FIRST_VERSION_ID} -- same-name.txt
+<<<
+= same-name.txt wug.txt
+
+# 测试删除所有文件然后提交
+> rm same-name.txt
+<<<
+> commit "deleted all files"
+<<<
+
+# 检查仓库是否为空
+* same-name.txt
+
+# 测试添加并立即删除文件
++ temp.txt wug.txt
+> add temp.txt
+<<<
+> rm temp.txt
+<<<
+
+# 检查状态
+> status
+=== Branches ===
+*master
+
+=== Staged Files ===
+
+=== Removed Files ===
+
+=== Modifications Not Staged For Commit ===
+
+=== Untracked Files ===
+
+<<<
+
+# 测试提交后立即检出前一个版本
++ new-file.txt wug.txt
+> add new-file.txt
+<<<
+> commit "add new file"
+<<<
+
+> log
+===
+${COMMIT_HEAD}
+add new file
+
+===
+${COMMIT_HEAD}
+deleted all files
+
+===
+${COMMIT_HEAD}
+second version
+
+===
+${COMMIT_HEAD}
+first version
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+
+# 保存前一个提交ID
+D PREV_COMMIT_ID "${2}"
+
+# 检出前一个提交
+> checkout ${PREV_COMMIT_ID} -- new-file.txt
+File does not exist in that commit.
+<<<
+
+# 测试创建分支切换后再回来
+> branch test-branch
+<<<
+> checkout test-branch
+<<<
++ branch-file.txt wug.txt
+> add branch-file.txt
+<<<
+> commit "branch commit"
+<<<
+> checkout master
+<<<
+
+# 确认文件不存在
+* branch-file.txt
+
+# 测试使用缩写的提交ID
+> log
+===
+${COMMIT_HEAD}
+add new file
+
+===
+${COMMIT_HEAD}
+deleted all files
+
+===
+${COMMIT_HEAD}
+second version
+
+===
+${COMMIT_HEAD}
+first version
+
+===
+${COMMIT_HEAD}
+initial commit
+
+<<<*
+
+# 保存第二个版本的前7位提交ID
+D SHORT_ID "${3}"
+D SHORT_ID "${SHORT_ID:0:7}"
+
+# 使用缩写的提交ID检出文件
+> checkout ${SHORT_ID} -- same-name.txt
+<<<
+= same-name.txt notwug.txt
