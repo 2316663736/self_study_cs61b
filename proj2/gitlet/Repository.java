@@ -385,7 +385,7 @@ public class Repository {
                     temp = "modified";
                 }
             } else if (commitFileNames != null && commitFileNames.contains(fileName)) {
-                if (!Tools.compareSHA1ofFile(Utils.join(CWD, fileName), Utils.join(GITLET_FILE_DIR, fileName))) {
+                if (!Tools.compareSHA1ofFile(Utils.join(CWD, fileName), nowCommit.getFileSHA(fileName))) {
                     temp = "modified";
                 }
             } else {

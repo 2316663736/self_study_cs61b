@@ -39,6 +39,12 @@ public class Tools {
         }
         return Objects.equals(getSHA1ofFile(file1), getSHA1ofFile(file2));
     }
+    public static boolean compareSHA1ofFile(File file1, String sha2) {
+        if (!file1.exists()) {
+            return false;
+        }
+        return Objects.equals(getSHA1ofFile(file1), sha2);
+    }
 
     /**
      * 判断一个字符串是否是有效的SHA-1哈希值
