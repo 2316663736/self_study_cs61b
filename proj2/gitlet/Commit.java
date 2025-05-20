@@ -7,6 +7,8 @@ package gitlet;
 import java.io.File;
 import java.util.*;
 
+import static gitlet.Repository.GITLET_FILE_DIR;
+
 /** Represents a gitlet commit object.
  *   存储commit信息，
  *   包括提交时的message，
@@ -77,11 +79,15 @@ public class Commit implements Dumpable {
      * @param father 父提交（当前所在的分支）
      * @param merge 父提交（被合并进来的分支）
      */
-    public Commit(String message, String father, String merge) {
+    public Commit(String message, String father, String merge, Commit lastCommit) {
         this.message = message;
         this.date = new Date();
         this.father = father;
         this.merge = merge;
+        if (lastCommit.files == null) {
+            return;
+        }
+        this.files = lastCommit.files;
     }
     /**
      * 加入文件名到文件sha-1值的映射
@@ -174,7 +180,7 @@ public class Commit implements Dumpable {
         if (now.father == null) {
             return;
         }
-        printLog(readCommit(Tools.getObjectFile(now.father, Repository.GITLET_FILE_DIR)));
+        printLog(readCommit(Tools.getObjectFile(now.father, GITLET_FILE_DIR)));
     }
 
     public static List<String> find(String commitMessage, Commit nowCommit) {
@@ -188,10 +194,74 @@ public class Commit implements Dumpable {
                 break;
             }
             nowCommit = readCommit(Tools.getObjectFile(nowCommit.father,
-                    Repository.GITLET_FILE_DIR));
+                    GITLET_FILE_DIR));
         }
         return res;
     }
 
+    /**
+     * 查找两个提交的最近公共祖先（分裂点）
+     * @param commit1ID 第一个提交的ID
+     * @param commit2ID 第二个提交的ID
+     * @return 分裂点的提交ID
+     */
+    public static String findSplitPoint(String commit1ID, String commit2ID) {
+        // 获取第一个提交的所有祖先（包括自己）
+        Set<String> ancestors1 = new HashSet<>();
+        Queue<String> queue = new LinkedList<>();
+        queue.offer(commit1ID);
 
+        // 使用BFS遍历第一个提交的所有祖先
+        while (!queue.isEmpty()) {
+            String current = queue.poll();
+            if (ancestors1.contains(current)) {
+                continue;  // 避免环形引用或重复处理
+            }
+
+            ancestors1.add(current);
+            Commit commit = Commit.readCommit(Tools.getObjectFile(current, GITLET_FILE_DIR));
+
+            // 添加父提交到队列
+            if (commit.father != null) {
+                queue.offer(commit.father);
+            }
+            // 如果是合并提交，还需要添加第二个父提交
+            if (commit.merge != null) {
+                queue.offer(commit.merge);
+            }
+        }
+
+        // 从第二个提交开始向上查找，第一个在ancestors1中出现的提交就是分裂点
+        queue.clear();
+        queue.offer(commit2ID);
+        Set<String> visited = new HashSet<>();
+
+        while (!queue.isEmpty()) {
+            String current = queue.poll();
+
+            // 如果当前提交已经在第一个提交的祖先中，则它就是分裂点
+            if (ancestors1.contains(current)) {
+                return current;
+            }
+
+            if (visited.contains(current)) {
+                continue;  // 避免环形引用或重复处理
+            }
+
+            visited.add(current);
+            Commit commit = Commit.readCommit(Tools.getObjectFile(current, GITLET_FILE_DIR));
+
+            // 添加父提交到队列
+            if (commit.father != null) {
+                queue.offer(commit.father);
+            }
+            // 如果是合并提交，还需要添加第二个父提交
+            if (commit.merge != null) {
+                queue.offer(commit.merge);
+            }
+        }
+
+        // 如果没有找到公共祖先，返回初始提交ID（理论上一定会有公共祖先）
+        return null;
+    }
 }
