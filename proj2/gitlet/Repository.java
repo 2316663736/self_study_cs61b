@@ -139,7 +139,7 @@ public class Repository {
             for (String fileName : branchNames) {
                 Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, fileName));
                 Commit currentCommit = Commit.readCommit(
-                        Tools.getObjectFile(nowBranch.getNewest(), GITLET_FILE_DIR));
+                        Tools.getObjectFile(nowBranch.getGlobalNewest(), GITLET_FILE_DIR));
                 Commit.printLog(currentCommit);
             }
         }

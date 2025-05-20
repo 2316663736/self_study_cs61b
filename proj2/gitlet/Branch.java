@@ -36,6 +36,9 @@ public class Branch implements Dumpable {
     public String getNewest() {
         return headCommit;
     }
+    public String getGlobalNewest() {
+        return allID.get(allID.size() - 1);
+    }
 
     public void reset(String ini) {
         headCommit = ini;
