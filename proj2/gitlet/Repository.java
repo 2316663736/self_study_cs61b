@@ -160,10 +160,9 @@ public class Repository {
     }
     public static void status() {
         checkGitlet();
-        String headCommitId = Tools.readHeadCommitId();
-        String nowBranch = Tools.readHeadBranch();
         //=== Branches ===
         System.out.println("=== Branches ===");
+        String nowBranch = Tools.readHeadBranch();
         List<String> branchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
         if (branchNames != null) {
             for (String branchName : branchNames) {
@@ -194,33 +193,26 @@ public class Repository {
         System.out.println();
         //=== Modifications Not Staged For Commit ===
         System.out.println("=== Modifications Not Staged For Commit ===");
-        List<String> nowFileNames = Utils.plainFilenamesIn(CWD);
-        Commit nowCommit = Commit.readCommit(Tools.getObjectFile(headCommitId, GITLET_FILE_DIR));
-        List<String> commitFileNames = nowCommit.getAllFiles();
-        List<String> allFileNames = Tools.mergeAndSort(nowFileNames, stagedFileNames, commitFileNames);
-        List<String> allFileStatus = getFileStatus(nowFileNames, stagedFileNames, commitFileNames, allFileNames);
 
-        for (int i = 0; i < allFileStatus.size(); i++) {
-            String statu = allFileStatus.get(i);
-            String filename = allFileNames.get(i);
-            if (statu.equals("modified") || statu.equals("deleted")) {
-                System.out.println(filename + " (" + statu + ")");
+        TreeMap<String, String> allFileStatusMap = getAllFileStatus();
+        for (String fileName : allFileStatusMap.keySet()) {
+            String status = allFileStatusMap.get(fileName);
+            if (status.equals("modified") || status.equals("deleted")) {
+                System.out.println(fileName + " (" + status + ")");
             }
         }
 
         System.out.println();
         //=== Untracked Files ===
         System.out.println("=== Untracked Files ===");
-        for (int i = 0; i < allFileStatus.size(); i++) {
-            String statu = allFileStatus.get(i);
-            String filename = allFileNames.get(i);
-            if (statu.equals("untracked")) {
-                System.out.println(filename);
+        for (String fileName : allFileStatusMap.keySet()) {
+            String status = allFileStatusMap.get(fileName);
+            if (status.equals("untracked")) {
+                System.out.println(fileName);
             }
         }
         System.out.println();
     }
-
 
 
     public static void checkout(String ... msg) {
@@ -358,12 +350,32 @@ public class Repository {
         }
     }
 
-    private static List<String> getFileStatus(List<String> nowFileNames, List<String> stagedFileNames, List<String> commitFileNames, List<String> allFileNames) {
-        List<String> result = new ArrayList<>();
+    private static TreeMap<String, String> getAllFileStatus() {
+        //存储各个文件状态的Map，前者是文件名，后者是状态
+        // none表示无事
+        // delete表示被删除了（不是使用rm删除）
+        //modified表示修改了
+        //untracked，未跟踪
+        TreeMap<String, String> result = new TreeMap<>();
+
+        String headCommitId = Tools.readHeadCommitId();
+        //当前目录下的文件
+        List<String> nowFileNames = Utils.plainFilenamesIn(CWD);
+        Commit nowCommit = Commit.readCommit(Tools.getObjectFile(headCommitId, GITLET_FILE_DIR));
+        //上一次commit中的文件
+        List<String> commitFileNames = nowCommit.getAllFiles();
+        //暂存文件
+        List<String> stagedFileNames = Utils.plainFilenamesIn(GITLET_TEM_DIR);
+        //上述三者文件
+        List<String> allFileNames = Tools.mergeAndSort(nowFileNames, stagedFileNames, commitFileNames);
+        //rm指令删除的文件，为了判断delete类型
+        List<String> deletedFileNames = Utils.plainFilenamesIn(GITLET_TEM_DIR_DELETE);
         for (String fileName : allFileNames) {
             String temp = "none";
             if (nowFileNames != null && !nowFileNames.contains(fileName)) {
-                temp = "deleted";
+                if (deletedFileNames != null && !deletedFileNames.contains(fileName)) {
+                    temp = "deleted";
+                }
             } else if (stagedFileNames != null && stagedFileNames.contains(fileName)) {
                 if (!Tools.compareSHA1ofFile(Utils.join(CWD, fileName), Utils.join(GITLET_TEM_DIR, fileName))) {
                     temp = "modified";
@@ -375,25 +387,21 @@ public class Repository {
             } else {
                 temp = "untracked";
             }
-            result.add(temp);
+            result.put(fileName, temp);
         }
         return result;
     }
+
     private static boolean anyFileUntracked() {
-        String headCommitId = Tools.readHeadCommitId();
-        List<String> nowFileNames = Utils.plainFilenamesIn(CWD);
-        Commit nowCommit = Commit.readCommit(Tools.getObjectFile(headCommitId, GITLET_FILE_DIR));
-        List<String> commitFileNames = nowCommit.getAllFiles();
-        List<String> stagedFileNames = Utils.plainFilenamesIn(GITLET_TEM_DIR);
-        List<String> allFileNames = Tools.mergeAndSort(nowFileNames, stagedFileNames, commitFileNames);
-        List<String> allFileStatus = getFileStatus(nowFileNames, stagedFileNames, commitFileNames, allFileNames);
-        for (String statu : allFileStatus) {
-            if (statu.equals("untracked")) {
+        TreeMap<String, String> allFileStatus = getAllFileStatus();
+        for (String fileName : allFileStatus.keySet()) {
+            if (allFileStatus.get(fileName).equals("untracked")) {
                 return true;
             }
         }
         return false;
     }
+
     private  static String findBranchOfCommit(String commitID) {
         List<String> branchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
         if (branchNames != null ) {
