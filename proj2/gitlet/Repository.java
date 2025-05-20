@@ -117,12 +117,13 @@ public class Repository {
         if (commit.fileExists(fileName)) {
             StagingArea.addStagingAreaDelete(file);
             find = true;
+            file.delete();
         }
         find = StagingArea.removeStagingArea(file) || find;
         if (!find) {
             throw new GitletException("No reason to remove the file.");
         }
-        file.delete();
+
     }
     public static void log() {
         checkGitlet();
@@ -305,8 +306,14 @@ public class Repository {
                     " delete it, or add and commit it first.");
         }
         changeToCommit(commitID);
+        //更新branch相关
+        Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR,branch));
+        nowBranch.reset(commitID);
+        nowBranch.writeBranch(Utils.join(GITLET_BRANCHES_DIR, branch));
+        //更新head以及清除暂存区
         String newHead = commitID + branch;
         Utils.writeContents(GITLET_HEAD, newHead);
+        StagingArea.deleteStagingArea();
     }
 
     public static void merge(String branchName) {

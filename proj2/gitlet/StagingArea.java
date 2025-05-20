@@ -1,6 +1,7 @@
 package gitlet;
 
 import java.io.File;
+import java.util.EmptyStackException;
 import java.util.List;
 
 /**
@@ -73,8 +74,11 @@ public class StagingArea {
     public static void addStagingAreaDelete(File file) {
         String filename = file.getName();
         File toWrite = Utils.join(STAGING_AREA_DELETE, filename);
-        byte[] con = Utils.readContents(file);
-        Utils.writeContents(toWrite, con);
+        byte[] content = new byte[0];
+        if (file.exists()) {
+            content = Utils.readContents(file);
+        }
+        Utils.writeContents(toWrite, (Object) content);
     }
 
     public static Commit updateCommit(Commit commit) {
