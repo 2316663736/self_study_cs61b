@@ -59,8 +59,8 @@ public class Repository {
     /*  fill in the rest of this class. */
     public static void init() {
         if (gitletExist()) {
-            throw new GitletException("A Gitlet version-control system" +
-                    " already exists in the current directory.");
+            throw new GitletException("A Gitlet version-control system"
+                    + " already exists in the current directory.");
         }
         Commit init = new Commit("initial commit", new Date(0), null);
         String commitId = init.toString();
@@ -232,8 +232,8 @@ public class Repository {
             } else if (Tools.readHeadBranch().equals(msg[1])) {
                 throw new GitletException("No need to checkout the current branch.");
             } else if (anyFileUntracked()) {
-                throw new GitletException("There is an untracked file in the way; delete it, " +
-                        "or add and commit it first.");
+                throw new GitletException("There is an untracked file in the way; delete it, "
+                        + "or add and commit it first.");
             }
             Branch outBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, msg[1]));
             StagingArea.deleteStagingArea();  //清除暂存区
@@ -305,12 +305,12 @@ public class Repository {
             throw new GitletException("No commit with that id exists.");
         }
         if (anyFileUntracked()) {
-            throw new GitletException("There is an untracked file in the way;" +
-                    " delete it, or add and commit it first.");
+            throw new GitletException("There is an untracked file in the way;"
+                    + " delete it, or add and commit it first.");
         }
         changeToCommit(commitID);
         //更新branch相关
-        Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR,branch));
+        Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, branch));
         nowBranch.reset(commitID);
         nowBranch.writeBranch(Utils.join(GITLET_BRANCHES_DIR, branch));
         //更新head以及清除暂存区
@@ -354,11 +354,14 @@ public class Repository {
         }
         // 检查是否有未跟踪文件会被覆盖
         if (anyFileUntracked()) {
-            throw new GitletException("There is an untracked file in the way; delete it, or add and commit it first.");
+            throw new GitletException("There is an untracked file in the way;"
+                    + " delete it, or add and commit it first.");
         }
         boolean conflict = false;
-        Commit currentCommit = Commit.readCommit(Tools.getObjectFile(currentCommitId, GITLET_FILE_DIR));
-        Commit targetCommit = Commit.readCommit(Tools.getObjectFile(targetCommitId, GITLET_FILE_DIR));
+        Commit currentCommit = Commit.readCommit(Tools.getObjectFile(currentCommitId,
+                GITLET_FILE_DIR));
+        Commit targetCommit = Commit.readCommit(Tools.getObjectFile(targetCommitId,
+                GITLET_FILE_DIR));
         Commit splitCommit = Commit.readCommit(Tools.getObjectFile(splitPoint, GITLET_FILE_DIR));
         // 获取所有文件名
         Set<String> allFiles = new HashSet<>();
@@ -371,8 +374,8 @@ public class Repository {
             String targetFileSHA = targetCommit.getFileSHA(fileName);
             String splitFileSHA = splitCommit.getFileSHA(fileName);
 
-            if (Objects.equals(currentFileSHA, splitFileSHA) &&
-                    !Objects.equals(targetFileSHA, splitFileSHA)) {
+            if (Objects.equals(currentFileSHA, splitFileSHA)
+                    && !Objects.equals(targetFileSHA, splitFileSHA)) {
                 // 1. 目标分支修改，当前分支未修改
                 if (targetFileSHA != null) {
                     // 目标分支更新了文件
@@ -382,8 +385,8 @@ public class Repository {
                     // 目标分支删除了文件
                     rm(fileName);
                 }
-            } else if (!Objects.equals(currentFileSHA, splitFileSHA) &&
-                    Objects.equals(targetFileSHA, splitFileSHA)) {
+            } else if (!Objects.equals(currentFileSHA, splitFileSHA)
+                    && Objects.equals(targetFileSHA, splitFileSHA)) {
                 // 2. 当前分支修改，目标分支未修改
                 // 保持当前分支状态，不需要操作
                 continue;
@@ -412,11 +415,9 @@ public class Repository {
                 }
 
                 // 创建冲突标记内容
-                String conflictContent = "<<<<<<< HEAD\n" +
-                        currentContent +
-                        "=======\n" +
-                        targetContent +
-                        ">>>>>>>\n";
+                String conflictContent = "<<<<<<< HEAD\n"
+                        + currentContent + "=======\n"
+                        + targetContent + ">>>>>>>\n";
 
                 // 写入工作目录并暂存
                 File file = Utils.join(CWD, fileName);

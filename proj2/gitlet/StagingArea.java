@@ -1,7 +1,6 @@
 package gitlet;
 
 import java.io.File;
-import java.util.EmptyStackException;
 import java.util.List;
 
 /**
@@ -19,8 +18,8 @@ public class StagingArea {
     public static boolean haveChangeInStagingArea() {
         List<String> filesAdd = Utils.plainFilenamesIn(STAGING_AREA);
         List<String> filesRemove = Utils.plainFilenamesIn(STAGING_AREA_DELETE);
-        if ((filesAdd == null || filesAdd.isEmpty()) &&
-                (filesRemove == null || filesRemove.isEmpty())) {
+        if ((filesAdd == null || filesAdd.isEmpty())
+                && (filesRemove == null || filesRemove.isEmpty())) {
             return false;
         }
         return true;
