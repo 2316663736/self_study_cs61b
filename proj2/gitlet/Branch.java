@@ -23,13 +23,17 @@ public class Branch implements Dumpable {
     }
 
     public Branch(Branch other) {
-        // Ensure a deep copy for `allID` if `other.allID` could be null or if `getCommitHistory` is available
+        // Ensure a deep copy for `allID` if `other.allID` could be null
+        // or if `getCommitHistory` is available.
         // For now, assuming `other.allID` is valid if `other` is a valid Branch object.
-        // The subtask asks to replace direct access in Repository, so this internal copy is okay for now.
+        // The subtask asks to replace direct access in Repository,
+        // so this internal copy is okay for now.
         // However, if `getCommitHistory` was already implemented, using it would be cleaner:
         // this.allID = new ArrayList<>(other.getCommitHistory());
-        this.allID = new ArrayList<>(other.allID); // Defensive copy
-        this.headCommit = other.headCommit; // headCommit is a String, direct copy is fine
+        // Defensive copy
+        this.allID = new ArrayList<>(other.allID);
+        // headCommit is a String, direct copy is fine
+        this.headCommit = other.headCommit;
     }
 
     public boolean containsCommitID(String id) {

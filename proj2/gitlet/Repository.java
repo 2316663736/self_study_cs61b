@@ -61,8 +61,8 @@ public class Repository {
     /*  fill in the rest of this class. */
     public static void init() {
         if (gitletExist()) {
-            throw new GitletException("A Gitlet version-control system"
-                    + " already exists in the current directory.");
+            throw new GitletException("A Gitlet version-control system already exists "
+                    + "in the current directory.");
         }
         Commit init = new Commit("initial commit", new Date(0), null);
         String commitId = init.toString();
@@ -235,8 +235,8 @@ public class Repository {
             } else if (Tools.readHeadBranch().equals(msg[1])) {
                 throw new GitletException("No need to checkout the current branch.");
             } else if (anyFileUntracked()) {
-                throw new GitletException("There is an untracked file in the way; delete it, "
-                        + "or add and commit it first.");
+                throw new GitletException("There is an untracked file in the way; "
+                        + "delete it, or add and commit it first.");
             }
             Branch outBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, msg[1]));
             StagingArea.deleteStagingArea();  //清除暂存区
@@ -308,8 +308,8 @@ public class Repository {
             throw new GitletException("No commit with that id exists.");
         }
         if (anyFileUntracked()) {
-            throw new GitletException("There is an untracked file in the way;"
-                    + " delete it, or add and commit it first.");
+            throw new GitletException("There is an untracked file in the way; "
+                    + "delete it, or add and commit it first.");
         }
         changeToCommit(commitID);
         //更新branch相关
@@ -484,9 +484,13 @@ public class Repository {
         }
 
         // 创建冲突标记内容
-        String conflictContent = "<<<<<<< HEAD\n"
-                + currentContent + "=======\n"
-                + targetContent + ">>>>>>>\n";
+        String conflictContent = String.join("\n",
+                "<<<<<<< HEAD",
+                currentContent,
+                "=======",
+                targetContent,
+                ">>>>>>>",
+                ""); // Adds a trailing newline like the original format
 
         // 写入工作目录并暂存
         File file = Utils.join(CWD, fileName);
@@ -523,8 +527,12 @@ public class Repository {
         if (remoteFile.exists()) {
             throw new GitletException("A remote with that name already exists.");
         }
-        String processedRemotePath = remotePath.replace("/", File.separator);
-        Utils.writeContents(remoteFile, processedRemotePath);
+        // Convert remotePath to an absolute path to the .gitlet directory
+        String platformPath = remotePath.replace("/", File.separator);
+        File remoteDirAsFile = new File(platformPath);
+        String absoluteRemotePath = remoteDirAsFile.getAbsolutePath();
+        
+        Utils.writeContents(remoteFile, absoluteRemotePath);
     }
 
     public static void rmRemote(String remoteName) {
@@ -559,8 +567,9 @@ public class Repository {
             throw new GitletException("Remote directory not found.");
         }
 
-        File remoteGitletDir = Utils.join(new File(remoteRepoPathString), ".gitlet");
+        File remoteGitletDir = new File(remoteRepoPathString); // Path stored is already to .gitlet dir
         if (!remoteGitletDir.exists() || !remoteGitletDir.isDirectory()) {
+            // This check also implicitly verifies if the path is a valid .gitlet directory
             throw new GitletException("Remote directory not found.");
         }
 
@@ -657,8 +666,9 @@ public class Repository {
             throw new GitletException("Remote directory not found.");
         }
 
-        File remoteGitletDir = Utils.join(new File(remoteRepoPathString), ".gitlet");
+        File remoteGitletDir = new File(remoteRepoPathString); // Path stored is already to .gitlet dir
         if (!remoteGitletDir.exists() || !remoteGitletDir.isDirectory()) {
+            // This check also implicitly verifies if the path is a valid .gitlet directory
             throw new GitletException("Remote directory not found.");
         }
 
