@@ -44,7 +44,7 @@ public class Commit implements Dumpable {
     /**
      * 文件名到sha1的映射
      */
-    private Map<String, String> files = null;
+    private Map<String, String> files; // Initialized to null by default or in constructor
     /* : fill in the rest of this class. */
 
     /**
@@ -169,6 +169,17 @@ public class Commit implements Dumpable {
             result.add(fileName);
         }
         return result;
+    }
+
+    /**
+     * Returns a defensive copy of the tracked files map.
+     * @return A new map containing file names and their SHA-1s, or an empty map if no files are tracked.
+     */
+    public Map<String, String> getTrackedFiles() {
+        if (this.files == null) {
+            return new HashMap<>(); // Or Collections.emptyMap();
+        }
+        return new HashMap<>(this.files);
     }
 
     public static Commit readCommit(File file) {

@@ -8,27 +8,42 @@ public class Branch implements Dumpable {
     /**
      * 存储当前branch的一个历史提交，从0到最后，代表由旧到新
      */
-    private List<String> allID = null;
+    private List<String> allID; // Ensure it's private, initialized in constructor
     private String headCommit = null;
     private static final File GITLET_BRANCHES_DIR = Repository.GITLET_BRANCHES_DIR;
     /**
      * 创建一个新的，空的branch
      */
     public Branch() {
-        allID = new ArrayList<String>();
+        allID = new ArrayList<>(); // Initialize here
     }
     public Branch(String init) {
-        this();
+        this(); // Calls the default constructor which initializes allID
         this.add(init);
     }
 
     public Branch(Branch other) {
-        this.allID = other.allID;
+        // Ensure a deep copy for `allID` if `other.allID` could be null or if `getCommitHistory` is available
+        // For now, assuming `other.allID` is valid if `other` is a valid Branch object.
+        // The subtask asks to replace direct access in Repository, so this internal copy is okay for now.
+        // However, if `getCommitHistory` was already implemented, using it would be cleaner:
+        // this.allID = new ArrayList<>(other.getCommitHistory());
+        this.allID = new ArrayList<>(other.allID); // Defensive copy
+        this.headCommit = other.headCommit; // headCommit is a String, direct copy is fine
     }
 
     public boolean containsCommitID(String id) {
         return allID.contains(id);
     }
+
+    /**
+     * Returns a defensive copy of the commit history.
+     * @return A new list containing all commit IDs in this branch's history.
+     */
+    public List<String> getCommitHistory() {
+        return new ArrayList<>(this.allID);
+    }
+
     public void add(String id) {
         allID.add(id);
         headCommit = id;
