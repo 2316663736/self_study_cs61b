@@ -331,7 +331,7 @@ public class Repository {
         String targetCommitId = target.getNewest();
 
         // 检查分裂点和特殊情况
-        handleSplitPointCases(currentCommitId, targetCommitId, branchName);
+        handleSplitPointCases(currentCommitId, targetCommitId, current, currentBranch);
 
         // 执行文件合并
         boolean conflict = mergeFiles(currentCommitId, targetCommitId);
@@ -372,7 +372,8 @@ public class Repository {
     /**
      * 处理分裂点相关的特殊情况
      */
-    private static void handleSplitPointCases(String currentCommitId, String targetCommitId, String branchName) {
+    private static void handleSplitPointCases(String currentCommitId, String targetCommitId,
+                                              Branch currentBranch, String branchName) {
         // 找到分支的分裂点
         String splitPoint = Commit.findSplitPoint(currentCommitId, targetCommitId);
         if (splitPoint == null) {
@@ -386,7 +387,11 @@ public class Repository {
         }
         if (splitPoint.equals(currentCommitId)) {
             // 当前分支是指定分支的祖先，执行快进
-            checkout(branchName);
+            currentBranch.add(targetCommitId);
+            changeToCommit(targetCommitId);
+            currentBranch.writeBranch(Utils.join(GITLET_BRANCHES_DIR, branchName));
+            String newHead = targetCommitId + branchName;
+            Utils.writeContents(GITLET_HEAD, newHead);
             throw new GitletException("Current branch fast-forwarded.");
         }
     }
@@ -398,8 +403,10 @@ public class Repository {
         boolean conflict = false;
 
         // 获取三个提交
-        Commit currentCommit = Commit.readCommit(Tools.getObjectFile(currentCommitId, GITLET_FILE_DIR));
-        Commit targetCommit = Commit.readCommit(Tools.getObjectFile(targetCommitId, GITLET_FILE_DIR));
+        Commit currentCommit = Commit.readCommit(Tools.getObjectFile(currentCommitId,
+                GITLET_FILE_DIR));
+        Commit targetCommit = Commit.readCommit(Tools.getObjectFile(targetCommitId,
+                GITLET_FILE_DIR));
         String splitPoint = Commit.findSplitPoint(currentCommitId, targetCommitId);
         Commit splitCommit = Commit.readCommit(Tools.getObjectFile(splitPoint, GITLET_FILE_DIR));
 
@@ -410,7 +417,8 @@ public class Repository {
         allFiles.addAll(splitCommit.getAllFiles());
 
         for (String fileName : allFiles) {
-            conflict = processFileMerge(fileName, currentCommit, targetCommit, splitCommit) || conflict;
+            conflict = processFileMerge(fileName, currentCommit, targetCommit, splitCommit)
+                    || conflict;
         }
 
         return conflict;
@@ -455,7 +463,8 @@ public class Repository {
     /**
      * 处理文件冲突
      */
-    private static boolean handleFileConflict(String fileName, String currentFileSHA, String targetFileSHA) {
+    private static boolean handleFileConflict(String fileName, String currentFileSHA,
+                                              String targetFileSHA) {
         // 创建冲突内容
         String currentContent = "";
         if (currentFileSHA != null) {
