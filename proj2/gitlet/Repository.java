@@ -56,6 +56,8 @@ public class Repository {
      */
     public static final File GITLET_TEM_DIR_DELETE = Utils.join(GITLET_TEM_DIR, "delete");
 
+
+    public static final File GITLET_REMOTE_FILES_DIR = Utils.join(GITLET_DIR, "remote_files");
     /*  fill in the rest of this class. */
     public static void init() {
         if (gitletExist()) {
@@ -70,6 +72,7 @@ public class Repository {
         Tools.createDir(GITLET_DIR);
         Tools.createDir(GITLET_BRANCHES_DIR);
         Tools.createDir(GITLET_FILE_DIR);
+        Tools.createDir(GITLET_REMOTE_FILES_DIR);
         StagingArea.init();
         master.writeBranch(Utils.join(GITLET_BRANCHES_DIR, GITLET_BRANCH_DEFAULT));
         init.writeCommit(Tools.getObjectFile(commitId, GITLET_FILE_DIR));
@@ -512,6 +515,35 @@ public class Repository {
         current.add(mergeCommit.toString());
         current.writeBranch(Utils.join(GITLET_BRANCHES_DIR, currentBranch));
         Utils.writeContents(GITLET_HEAD, mergeCommit.toString() + currentBranch);
+    }
+
+    public static void addRemote(String remoteName, String fileName) {
+        checkGitlet();
+        List<String> allRemoteFiles = Utils.plainFilenamesIn(GITLET_REMOTE_FILES_DIR);
+        if (allRemoteFiles != null && allRemoteFiles.contains(remoteName)) {
+            throw new GitletException("A remote with that name already exists.");
+        }
+        Utils.writeContents(Utils.join(GITLET_REMOTE_FILES_DIR, remoteName), fileName);
+    }
+
+    public static void rmRemote(String remoteName) {
+        checkGitlet();
+        List<String> allRemoteFiles = Utils.plainFilenamesIn(GITLET_REMOTE_FILES_DIR);
+        if (allRemoteFiles == null || !allRemoteFiles.contains(remoteName)) {
+            throw new GitletException("A remote with that name does not exist.");
+        }
+        File file = Utils.join(GITLET_REMOTE_FILES_DIR, remoteName);
+        file.delete();
+    }
+
+    public static void push(String remoteName, String remoteBranchName) {
+        checkGitlet();
+    }
+    public static void fetch(String remoteName, String remoteBranchName) {
+        checkGitlet();
+    }
+    public static void pull(String remoteName, String remoteBranchName) {
+        checkGitlet();
     }
 
     private static void changeOneFileCWD(String fileName, String sha1OfFile) {
