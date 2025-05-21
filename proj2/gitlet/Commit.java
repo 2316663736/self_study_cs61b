@@ -5,6 +5,7 @@ package gitlet;
 
 
 import java.io.File;
+import java.io.Serializable; // Import Serializable
 import java.util.*;
 
 import static gitlet.Repository.GITLET_FILE_DIR;
@@ -19,7 +20,7 @@ import static gitlet.Repository.GITLET_FILE_DIR;
  *
  *  @author qianye
  */
-public class Commit implements Dumpable {
+public class Commit implements Dumpable, Serializable { // Implement Serializable
     /*
        add instance variables here.
       List all instance variables of the Commit class here with a useful
@@ -332,5 +333,27 @@ public class Commit implements Dumpable {
             }
         }
         return false; // Ancestor not found in the history of the descendant
+    }
+
+    /**
+     * Gets the ancestry path of a commit, tracing back via first parent.
+     * @param commitId The SHA1 of the commit to start from.
+     * @param objectsDir The directory where commit objects are stored.
+     * @return A list of commit IDs from the initial commit to the given commitId, in chronological order.
+     */
+    public static List<String> getAncestryPath(String commitId, File objectsDir) {
+        LinkedList<String> path = new LinkedList<>();
+        String currentCommitId = commitId;
+        while (currentCommitId != null) {
+            path.addFirst(currentCommitId); // Add to the beginning to reverse order later
+            File commitFile = Tools.getObjectFile(currentCommitId, objectsDir);
+            if (!commitFile.exists()) {
+                // Should not happen if commitId is valid and from a consistent repository state
+                break; 
+            }
+            Commit currentCommit = Commit.readCommit(commitFile);
+            currentCommitId = currentCommit.father; // Trace first parent
+        }
+        return path; // path is now in chronological order (root to commitId)
     }
 }

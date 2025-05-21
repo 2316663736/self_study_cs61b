@@ -3,8 +3,9 @@ package gitlet;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Serializable; // Import Serializable
 
-public class Branch implements Dumpable {
+public class Branch implements Dumpable, Serializable { // Implement Serializable
     /**
      * 存储当前branch的一个历史提交，从0到最后，代表由旧到新
      */

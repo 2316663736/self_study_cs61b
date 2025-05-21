@@ -665,12 +665,18 @@ public class Repository {
         RemotePaths paths = validateAndGetRemotePaths(remoteName, remoteBranchName);
 
         String localHeadCommitId = Tools.readHeadCommitId();
-        String localBranchNameString = Tools.readHeadBranch();
-        Branch localBranchObject = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, localBranchNameString));
         
-        // Line 570: localCommitHistoryIds initialization
-        // Moved comment to its own line.
-        List<String> localCommitHistoryIds = localBranchObject.getCommitHistory();
+        // Get the true, up-to-date linear history of the local head commit.
+        // This is used for both determining commits to push and for setting the remote branch's history.
+        List<String> currentLocalCommitAncestry = Commit.getAncestryPath(localHeadCommitId, GITLET_FILE_DIR);
+        if (currentLocalCommitAncestry.isEmpty() && localHeadCommitId != null) {
+            // This would only happen if localHeadCommitId is somehow invalid or getAncestryPath has an issue
+            // with the very first commit. getAncestryPath should return a list with localHeadCommitId.
+            // For safety, if it's empty but we have a head, add the head.
+            currentLocalCommitAncestry = new ArrayList<>();
+            currentLocalCommitAncestry.add(localHeadCommitId);
+        }
+
 
         String remoteHeadCommitId = performPushPreChecks(localHeadCommitId, paths.remoteBranchFile);
 
@@ -679,9 +685,15 @@ public class Repository {
         }
 
         List<String> commitsToPushIds = new ArrayList<>();
-        int indexOfRemoteHead = (remoteHeadCommitId == null) ? -1 : localCommitHistoryIds.indexOf(remoteHeadCommitId);
-        for (int i = indexOfRemoteHead + 1; i < localCommitHistoryIds.size(); i++) {
-            commitsToPushIds.add(localCommitHistoryIds.get(i));
+        int indexOfRemoteHead = (remoteHeadCommitId == null) ? -1 : currentLocalCommitAncestry.indexOf(remoteHeadCommitId);
+        
+        // If remoteHeadCommitId is found, take all commits after it from the true ancestry.
+        // If not found (indexOfRemoteHead == -1), it means either remote is empty (remoteHeadCommitId == null)
+        // or remoteHeadCommitId is not a direct first-parent ancestor (a more complex case but
+        // performPushPreChecks should have already validated general ancestry for fast-forward).
+        // In either of these "not found" cases, all commits in currentLocalCommitAncestry are candidates to be pushed.
+        for (int i = indexOfRemoteHead + 1; i < currentLocalCommitAncestry.size(); i++) {
+            commitsToPushIds.add(currentLocalCommitAncestry.get(i));
         }
         
         transferObjectsToRemote(commitsToPushIds, GITLET_FILE_DIR, paths.remoteObjectsDir);
@@ -689,7 +701,12 @@ public class Repository {
         if (!paths.remoteBranchesDir.exists()) {
             paths.remoteBranchesDir.mkdirs();
         }
-        Branch newOrUpdatedRemoteBranch = new Branch(localBranchObject);
+        
+        // Construct the remote branch state using the true ancestry.
+        Branch newOrUpdatedRemoteBranch = new Branch(); 
+        for (String commitIdInPath : currentLocalCommitAncestry) {
+            newOrUpdatedRemoteBranch.add(commitIdInPath); 
+        }
         newOrUpdatedRemoteBranch.writeBranch(paths.remoteBranchFile);
     }
 
