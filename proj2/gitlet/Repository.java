@@ -517,13 +517,14 @@ public class Repository {
         Utils.writeContents(GITLET_HEAD, mergeCommit.toString() + currentBranch);
     }
 
-    public static void addRemote(String remoteName, String fileName) {
+    public static void addRemote(String remoteName, String remotePath) {
         checkGitlet();
-        List<String> allRemoteFiles = Utils.plainFilenamesIn(GITLET_REMOTE_FILES_DIR);
-        if (allRemoteFiles != null && allRemoteFiles.contains(remoteName)) {
+        File remoteFile = Utils.join(GITLET_REMOTE_FILES_DIR, remoteName);
+        if (remoteFile.exists()) {
             throw new GitletException("A remote with that name already exists.");
         }
-        Utils.writeContents(Utils.join(GITLET_REMOTE_FILES_DIR, remoteName), fileName);
+        String processedRemotePath = remotePath.replace("/", File.separator);
+        Utils.writeContents(remoteFile, processedRemotePath);
     }
 
     public static void rmRemote(String remoteName) {
@@ -538,12 +539,197 @@ public class Repository {
 
     public static void push(String remoteName, String remoteBranchName) {
         checkGitlet();
+
+        // 1. Remote Directory Check
+        File remoteNameFile = Utils.join(GITLET_REMOTE_FILES_DIR, remoteName);
+        // Not checking remoteNameFile.exists() here as readContentsAsString will return null
+        String remoteRepoPathString = Utils.readContentsAsString(remoteNameFile);
+        if (remoteRepoPathString == null || remoteRepoPathString.isEmpty()) {
+            // This implies remoteNameFile doesn't exist or is empty.
+            // The spec for fetch is "Remote directory not found." if .gitlet is missing,
+            // not if the remote config is missing.
+            // However, push should probably indicate a misconfigured remote.
+            // For now, let's align with a general sense of "remote problem".
+            throw new GitletException("Remote directory not found."); // Or specific "remote not configured"
+        }
+
+        File remoteGitletDir = Utils.join(new File(remoteRepoPathString), ".gitlet");
+        if (!remoteGitletDir.exists() || !remoteGitletDir.isDirectory()) {
+            throw new GitletException("Remote directory not found.");
+        }
+
+        // 2. Remote Branch Handling (Paths)
+        File remoteObjectsDir = Utils.join(remoteGitletDir, "file"); // "file" is objects dir
+        File remoteBranchesDir = Utils.join(remoteGitletDir, "branches");
+        File remoteBranchFile = Utils.join(remoteBranchesDir, remoteBranchName);
+
+        // 3. Get Local Branch and Commits
+        String localHeadCommitId = Tools.readHeadCommitId();
+        String localBranchNameString = Tools.readHeadBranch(); // Current local branch name
+        Branch localBranchObject = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, localBranchNameString));
+        List<String> localCommitHistoryIds = new ArrayList<>(localBranchObject.allID); // Defensive copy
+
+        // 4. Remote Branch Existence and History Check
+        String remoteHeadCommitId = null;
+        boolean remoteBranchExists = remoteBranchFile.exists();
+        Branch remoteBranchObject = null;
+
+        if (remoteBranchExists) {
+            remoteBranchObject = Branch.readBranch(remoteBranchFile);
+            remoteHeadCommitId = remoteBranchObject.getNewest();
+            if (!localBranchObject.containsCommitID(remoteHeadCommitId)) {
+                throw new GitletException("Please pull down remote changes before pushing.");
+            }
+        }
+        
+        // If remoteHeadCommitId is the same as localHeadCommitId, nothing to push.
+        if (Objects.equals(localHeadCommitId, remoteHeadCommitId)) {
+            return; // Nothing to do
+        }
+
+        // 5. Identify Commits to Push (Fast-Forward)
+        List<String> commitsToPushIds = new ArrayList<>();
+        int indexOfRemoteHead = -1;
+        if (remoteHeadCommitId != null) {
+            indexOfRemoteHead = localCommitHistoryIds.indexOf(remoteHeadCommitId);
+        }
+        for (int i = indexOfRemoteHead + 1; i < localCommitHistoryIds.size(); i++) {
+            commitsToPushIds.add(localCommitHistoryIds.get(i));
+        }
+        
+        // 6. Copy Commits and Blobs
+        if (!remoteObjectsDir.exists()) {
+            remoteObjectsDir.mkdirs(); 
+        }
+
+        for (String commitId : commitsToPushIds) {
+            File localCommitFile = Tools.getObjectFile(commitId, GITLET_FILE_DIR);
+            Commit commitToPush = Commit.readCommit(localCommitFile);
+
+            File remoteCommitFile = Tools.getObjectFile(commitId, remoteObjectsDir);
+            if (!remoteCommitFile.getParentFile().exists()) {
+                remoteCommitFile.getParentFile().mkdirs();
+            }
+            commitToPush.writeCommit(remoteCommitFile); 
+
+            if (commitToPush.files != null) {
+                for (String blobSha1 : commitToPush.files.values()) {
+                    File localBlobFile = Tools.getObjectFile(blobSha1, GITLET_FILE_DIR);
+                    File remoteBlobFile = Tools.getObjectFile(blobSha1, remoteObjectsDir);
+                    if (!remoteBlobFile.getParentFile().exists()) {
+                        remoteBlobFile.getParentFile().mkdirs();
+                    }
+                    Utils.writeContents(remoteBlobFile, Utils.readContents(localBlobFile));
+                }
+            }
+        }
+
+        // 7. Update Remote Branch
+        if (!remoteBranchesDir.exists()) {
+            remoteBranchesDir.mkdirs(); 
+        }
+        
+        Branch newOrUpdatedRemoteBranch = new Branch(localBranchObject); 
+        newOrUpdatedRemoteBranch.writeBranch(remoteBranchFile); 
     }
+
     public static void fetch(String remoteName, String remoteBranchName) {
         checkGitlet();
+
+        // 2. Remote Directory and Branch Check
+        File remoteNameInfoFile = Utils.join(GITLET_REMOTE_FILES_DIR, remoteName);
+        String remoteRepoPathString = Utils.readContentsAsString(remoteNameInfoFile);
+        if (remoteRepoPathString == null || remoteRepoPathString.isEmpty()) {
+            // This implies remoteNameInfoFile doesn't exist or is empty.
+            // This case could be "Remote 'remoteName' not found" or similar,
+            // but spec asks for "Remote directory not found" if .gitlet itself is missing.
+            // Let's assume if remoteRepoPathString is bad, the .gitlet check below will fail.
+            // For robustness, one might add: throw new GitletException("Configuration for remote '" + remoteName + "' not found or is empty.");
+        }
+
+        File remoteGitletDir = Utils.join(new File(remoteRepoPathString), ".gitlet");
+        if (!remoteGitletDir.exists() || !remoteGitletDir.isDirectory()) {
+            throw new GitletException("Remote directory not found.");
+        }
+
+        File remoteBranchesDir = Utils.join(remoteGitletDir, "branches");
+        File remoteBranchFile = Utils.join(remoteBranchesDir, remoteBranchName);
+        if (!remoteBranchFile.exists()) {
+            throw new GitletException("That remote does not have that branch.");
+        }
+
+        // 3. Remote Objects Path
+        File remoteObjectsDir = Utils.join(remoteGitletDir, "file");
+
+        // 4. Read Remote Branch
+        Branch remoteBranchObject = Branch.readBranch(remoteBranchFile);
+        // String remoteHeadCommitId = remoteBranchObject.getNewest(); // Not directly used, but good to have
+        List<String> remoteCommitHistoryIds = new ArrayList<>(remoteBranchObject.allID); // Defensive copy
+
+        // 5. Copy Commits and Blobs
+        for (String commitId : remoteCommitHistoryIds) {
+            File localCommitObjFile = Tools.getObjectFile(commitId, GITLET_FILE_DIR);
+            if (!localCommitObjFile.exists()) {
+                File remoteCommitObjFile = Tools.getObjectFile(commitId, remoteObjectsDir);
+                // It's possible remoteCommitObjFile also doesn't exist if remote is corrupted,
+                // but spec assumes valid remote.
+                if (!remoteCommitObjFile.exists()) {
+                    throw new GitletException("Remote repository is missing object: " + commitId);
+                }
+                Commit commitToFetch = Commit.readCommit(remoteCommitObjFile);
+
+                File localCommitParentDir = localCommitObjFile.getParentFile();
+                if (localCommitParentDir != null && !localCommitParentDir.exists()) {
+                    localCommitParentDir.mkdirs();
+                }
+                commitToFetch.writeCommit(localCommitObjFile);
+
+                if (commitToFetch.files != null) {
+                    for (String blobSha1 : commitToFetch.files.values()) {
+                        File localBlobFile = Tools.getObjectFile(blobSha1, GITLET_FILE_DIR);
+                        if (!localBlobFile.exists()) {
+                            File remoteBlobFile = Tools.getObjectFile(blobSha1, remoteObjectsDir);
+                             if (!remoteBlobFile.exists()) {
+                                throw new GitletException("Remote repository is missing object: " + blobSha1);
+                            }
+                            byte[] blobContents = Utils.readContents(remoteBlobFile);
+                            File localBlobParentDir = localBlobFile.getParentFile();
+                            if (localBlobParentDir != null && !localBlobParentDir.exists()) {
+                                localBlobParentDir.mkdirs();
+                            }
+                            Utils.writeContents(localBlobFile, blobContents);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 6. Create/Update Local Fetch Branch
+        // The local branch name for fetched content will be [remoteName]/[remoteBranchName].
+        // Example: remote "other", branch "master" -> local branch is "other/master"
+        // The file path will be .gitlet/branches/other/master
+        String localFetchBranchDirName = remoteName; // This is the subdirectory under branches
+        File localFetchBranchParentDir = Utils.join(GITLET_BRANCHES_DIR, localFetchBranchDirName);
+        
+        if (!localFetchBranchParentDir.exists()) {
+            localFetchBranchParentDir.mkdirs(); // Create .gitlet/branches/[remoteName]/
+        }
+
+        File localFetchBranchFile = Utils.join(localFetchBranchParentDir, remoteBranchName);
+        
+        // Create a new Branch object for the local fetch branch.
+        // Its history and head should be a copy of remoteBranchObject.
+        Branch newLocalFetchedBranch = new Branch(remoteBranchObject); // Using copy constructor
+        newLocalFetchedBranch.writeBranch(localFetchBranchFile);
     }
+
     public static void pull(String remoteName, String remoteBranchName) {
         checkGitlet();
+        Repository.fetch(remoteName, remoteBranchName);
+        // Construct the branch name as it's stored by fetch: remoteName/remoteBranchName
+        // The modified Branch.branchExists and merge logic should handle this path.
+        String fetchedBranchIdentifier = remoteName + "/" + remoteBranchName;
+        Repository.merge(fetchedBranchIdentifier);
     }
 
     private static void changeOneFileCWD(String fileName, String sha1OfFile) {

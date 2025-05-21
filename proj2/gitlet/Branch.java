@@ -67,8 +67,9 @@ public class Branch implements Dumpable {
         Utils.writeObject(file, this);
     }
 
-    public static boolean branchExists(String branchName) {
-        List<String> allBranchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
-        return allBranchNames != null && allBranchNames.contains(branchName);
+    public static boolean branchExists(String branchPath) {
+        // branchPath could be "master" or "origin/master"
+        File branchFile = Utils.join(GITLET_BRANCHES_DIR, branchPath.replace("/", File.separator));
+        return branchFile.exists() && branchFile.isFile();
     }
 }
