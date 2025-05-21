@@ -297,28 +297,43 @@ public class Repository {
 
     public static void reset(String commitID) {
         checkGitlet();
-        String branch = null;
+
+        // 1. Get Full Commit ID
+        String fullCommitId;
         try {
-            commitID = Tools.getFullSha1(commitID, GITLET_FILE_DIR);
-            branch = findBranchOfCommit(commitID);
-            if (branch == null) {
-                throw new GitletException("No such branch.");
-            }
+            fullCommitId = Tools.getFullSha1(commitID, GITLET_FILE_DIR);
         } catch (GitletException e) {
+            // This catch block might be too broad if getFullSha1 throws other GitletExceptions.
+            // Assuming getFullSha1 specific exception implies "No commit with that id exists"
+            // or that its primary failure mode caught here is non-resolution.
             throw new GitletException("No commit with that id exists.");
         }
+
+        // 2. Verify Commit Object Existence
+        File commitFile = Tools.getObjectFile(fullCommitId, GITLET_FILE_DIR);
+        if (!commitFile.exists()) {
+            throw new GitletException("No commit with that id exists.");
+        }
+
+        // 3. Untracked Files Check
         if (anyFileUntracked()) {
             throw new GitletException("There is an untracked file in the way; "
                     + "delete it, or add and commit it first.");
         }
-        changeToCommit(commitID);
-        //更新branch相关
-        Branch nowBranch = Branch.readBranch(Utils.join(GITLET_BRANCHES_DIR, branch));
-        nowBranch.reset(commitID);
-        nowBranch.writeBranch(Utils.join(GITLET_BRANCHES_DIR, branch));
-        //更新head以及清除暂存区
-        String newHead = commitID + branch;
-        Utils.writeContents(GITLET_HEAD, newHead);
+
+        // 4. Perform Checkout and Update Current Branch
+        changeToCommit(fullCommitId); // This updates CWD
+
+        String currentBranchName = Tools.readHeadBranch();
+        File currentBranchFile = Utils.join(GITLET_BRANCHES_DIR, currentBranchName);
+        Branch currentBranchObject = Branch.readBranch(currentBranchFile);
+
+        currentBranchObject.reset(fullCommitId); // Assumes Branch.reset updates the head commit pointer
+        currentBranchObject.writeBranch(currentBranchFile);
+
+        // 5. Update HEAD and Clear Staging Area
+        String newHeadPointer = fullCommitId + currentBranchName;
+        Utils.writeContents(GITLET_HEAD, newHeadPointer);
         StagingArea.deleteStagingArea();
     }
 
@@ -484,13 +499,31 @@ public class Repository {
         }
 
         // 创建冲突标记内容
-        String conflictContent = String.join("\n",
-                "<<<<<<< HEAD",
-                currentContent,
-                "=======",
-                targetContent,
-                ">>>>>>>",
-                ""); // Adds a trailing newline like the original format
+        // Ensure content strings are consistently handled, assuming UTF-8
+        // This logic is designed to exactly match the test file formats for conflicts.
+
+        StringBuilder conflictBuilder = new StringBuilder();
+        conflictBuilder.append("<<<<<<< HEAD\n");
+        conflictBuilder.append(currentContent);
+        if (!currentContent.isEmpty() && !currentContent.endsWith("\n")) {
+            conflictBuilder.append("\n");
+        } else if (currentContent.isEmpty()) { // If current content is empty, git usually puts a newline
+            conflictBuilder.append("\n");
+        }
+
+        conflictBuilder.append("=======\n");
+
+        if (!targetContent.isEmpty()) {
+            conflictBuilder.append(targetContent);
+            if (!targetContent.endsWith("\n")) {
+                conflictBuilder.append("\n");
+            }
+        }
+        // If targetContent is empty, nothing is appended for it between "=======\n" and ">>>>>>>\n"
+        // to match conflict2.txt style.
+
+        conflictBuilder.append(">>>>>>>\n");
+        String conflictContent = conflictBuilder.toString();
 
         // 写入工作目录并暂存
         File file = Utils.join(CWD, fileName);
