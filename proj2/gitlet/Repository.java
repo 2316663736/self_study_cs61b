@@ -296,26 +296,21 @@ public class Repository {
     }
 
     public static void reset(String commitID) {
-        checkGitlet();
+        checkGitlet(); // Prerequisite check
 
-        // 1. Get Full Commit ID
-        String fullCommitId;
-        try {
-            fullCommitId = Tools.getFullSha1(commitID, GITLET_FILE_DIR);
-        } catch (GitletException e) {
-            // This catch block might be too broad if getFullSha1 throws other GitletExceptions.
-            // Assuming getFullSha1 specific exception implies "No commit with that id exists"
-            // or that its primary failure mode caught here is non-resolution.
-            throw new GitletException("No commit with that id exists.");
-        }
+        // Tools.getFullSha1 will throw GitletException("No commit with that id exists.")
+        // if commitID is invalid, ambiguous, or does not resolve to an existing commit object file.
+        // This exception will propagate to Main.java's try-catch block.
+        String fullCommitId = Tools.getFullSha1(commitID, GITLET_FILE_DIR);
 
-        // 2. Verify Commit Object Existence
-        File commitFile = Tools.getObjectFile(fullCommitId, GITLET_FILE_DIR);
-        if (!commitFile.exists()) {
-            throw new GitletException("No commit with that id exists.");
-        }
+        // The following check is technically redundant if Tools.getFullSha1 guarantees
+        // the returned SHA corresponds to an existing file, which it now does.
+        // File commitFile = Tools.getObjectFile(fullCommitId, GITLET_FILE_DIR);
+        // if (!commitFile.exists()) {
+        //     throw new GitletException("No commit with that id exists.");
+        // }
 
-        // 3. Untracked Files Check
+        // Untracked Files Check
         if (anyFileUntracked()) {
             throw new GitletException("There is an untracked file in the way; "
                     + "delete it, or add and commit it first.");
@@ -612,17 +607,25 @@ public class Repository {
         return new RemotePaths(remoteGitletDir, remoteObjectsDir, remoteBranchesDir, remoteBranchFile);
     }
 
-    private static String performPushPreChecks(Branch localBranchObject, File remoteBranchFile) {
+    private static String performPushPreChecks(String localHeadCommitId, File remoteBranchFile) {
         String remoteHeadCommitId = null;
         if (remoteBranchFile.exists()) {
             Branch remoteBranchObject = Branch.readBranch(remoteBranchFile);
             remoteHeadCommitId = remoteBranchObject.getNewest();
-            // Line 569: Ensure this condition is not on an overly long line.
-            boolean requiresPull = !localBranchObject.containsCommitID(remoteHeadCommitId);
-            if (requiresPull) {
-                throw new GitletException("Please pull down remote changes before pushing.");
+            
+            // If remoteHeadCommitId is null (e.g. remote branch was just init'd but never got commits, though Branch usually has one)
+            // or if localHead is null (empty local repo, though push usually implies some local commits),
+            // isAncestor should handle it (returns false).
+            // A push to an empty remote branch (remoteHeadCommitId is null) should always be a fast-forward.
+            if (remoteHeadCommitId != null) { // Only check ancestry if remote branch has a head
+                boolean isFastForwardPossible = Commit.isAncestor(localHeadCommitId, remoteHeadCommitId, GITLET_FILE_DIR);
+                if (!isFastForwardPossible) {
+                    throw new GitletException("Please pull down remote changes before pushing.");
+                }
             }
         }
+        // If remoteBranchFile does not exist, remoteHeadCommitId remains null,
+        // which implies a new branch is being pushed, always a fast-forward.
         return remoteHeadCommitId;
     }
 
@@ -669,7 +672,7 @@ public class Repository {
         // Moved comment to its own line.
         List<String> localCommitHistoryIds = localBranchObject.getCommitHistory();
 
-        String remoteHeadCommitId = performPushPreChecks(localBranchObject, paths.remoteBranchFile);
+        String remoteHeadCommitId = performPushPreChecks(localHeadCommitId, paths.remoteBranchFile);
 
         if (Objects.equals(localHeadCommitId, remoteHeadCommitId)) {
             return; // Nothing to do

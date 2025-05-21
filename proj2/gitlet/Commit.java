@@ -275,4 +275,62 @@ public class Commit implements Dumpable {
         // 如果没有找到公共祖先，返回初始提交ID（理论上一定会有公共祖先）
         return null;
     }
+    
+    /**
+     * Checks if 'ancestorCommitId' is an ancestor of or the same as 'descendantCommitId'.
+     * Traverses backwards from descendantCommitId using parent pointers.
+     * @param descendantCommitId The SHA1 of the commit to start traversal from.
+     * @param ancestorCommitId The SHA1 of the potential ancestor commit.
+     * @param objectsDir The directory where commit objects are stored (e.g., GITLET_FILE_DIR).
+     * @return true if ancestorCommitId is an ancestor of or same as descendantCommitId.
+     */
+    public static boolean isAncestor(String descendantCommitId, String ancestorCommitId, File objectsDir) {
+        if (descendantCommitId == null || ancestorCommitId == null) {
+            return false;
+        }
+        // If they are the same commit, it's considered an ancestor for fast-forward purposes.
+        if (descendantCommitId.equals(ancestorCommitId)) {
+            return true;
+        }
+
+        Queue<String> toVisit = new LinkedList<>();
+        toVisit.offer(descendantCommitId);
+        // Using a Set to keep track of visited commits can prevent re-processing in complex histories,
+        // though for simple parent traversal it might be overkill if commit graph is strictly a DAG.
+        // However, it's good practice for graph traversals.
+        Set<String> visitedDuringTraversal = new HashSet<>(); 
+
+        while (!toVisit.isEmpty()) {
+            String currentCommitId = toVisit.poll();
+
+            if (visitedDuringTraversal.contains(currentCommitId)) {
+                continue;
+            }
+            visitedDuringTraversal.add(currentCommitId);
+
+            File commitFile = Tools.getObjectFile(currentCommitId, objectsDir);
+            // If a commit object is missing from the objectsDir, something is wrong with the repo integrity.
+            // For this check, we can treat it as the ancestor not being found down this path.
+            if (!commitFile.exists()) { 
+                continue; 
+            }
+            Commit currentCommit = Commit.readCommit(commitFile);
+
+            // Check first parent
+            if (currentCommit.father != null) {
+                if (currentCommit.father.equals(ancestorCommitId)) {
+                    return true;
+                }
+                toVisit.offer(currentCommit.father);
+            }
+            // Check second parent (if it's a merge commit)
+            if (currentCommit.merge != null) { 
+                if (currentCommit.merge.equals(ancestorCommitId)) {
+                    return true;
+                }
+                toVisit.offer(currentCommit.merge);
+            }
+        }
+        return false; // Ancestor not found in the history of the descendant
+    }
 }

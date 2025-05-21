@@ -71,55 +71,71 @@ public class Tools {
      * @return 完整的SHA-1哈希值，如果没找到或找到多个匹配则返回null
      */
     public static String getFullSha1(String shaPrefix, File fileDirectory) {
-        if (shaPrefix == null || shaPrefix.length() < 1) {
-            return null;
+        if (shaPrefix == null || shaPrefix.isEmpty()) {
+            throw new GitletException("No commit with that id exists."); // Or invalid input
         }
 
-        // 将前缀标准化为小写
         shaPrefix = shaPrefix.toLowerCase();
 
-        // 如果已经是完整的SHA-1，直接检查是否存在
-        if (shaPrefix.length() == Utils.UID_LENGTH) {
-            File objFile = getObjectFile(shaPrefix, fileDirectory);
-            return objFile.exists() ? shaPrefix : null;
-        }
+        // Check for invalid characters early.
+        // isValidSha1(shaPrefix, false) allows any length, just checks chars.
         if (!isValidSha1(shaPrefix, false)) {
-            throw new GitletException("Invalid sha1: " + shaPrefix + ".");
+            // While "Invalid sha1" is descriptive, the requirement is to unify error messages.
+            throw new GitletException("No commit with that id exists.");
         }
 
-        // 获取前两位作为目录名
-        String dirPrefix = shaPrefix.length() >= 2 ? shaPrefix.substring(0, 2) : shaPrefix;
+        // If already a full SHA-1
+        if (shaPrefix.length() == Utils.UID_LENGTH) {
+            File objFile = getObjectFile(shaPrefix, fileDirectory); // getObjectFile itself validates format
+            if (objFile.exists()) {
+                return shaPrefix;
+            } else {
+                throw new GitletException("No commit with that id exists.");
+            }
+        }
+
+        // Handle short IDs
+        // A short ID must be long enough to form a directory prefix if that's how objects are stored.
+        // Typically, at least 2 characters for the directory.
+        // The problem description implies any short ID should be processed.
+        // Let's assume short IDs less than 2 chars are invalid or won't match.
+        if (shaPrefix.length() < 2) { // Git usually requires a minimum length for short SHAs (e.g., 4-7)
+                                      // For this structure, minimum 2 for dir.
+            throw new GitletException("No commit with that id exists."); // Too short to be practically unique or find dir
+        }
+
+        String dirPrefix = shaPrefix.substring(0, 2);
         File objDir = Utils.join(fileDirectory, dirPrefix);
 
-        // 如果目录不存在，则没有匹配
         if (!objDir.exists() || !objDir.isDirectory()) {
-            return null;
+            throw new GitletException("No commit with that id exists.");
         }
 
-        // 查找匹配的文件
-        String remainingPrefix = shaPrefix.length() >= 2 ? shaPrefix.substring(2) : "";
+        String remainingPrefix = shaPrefix.substring(2);
         List<String> matchedShas = new ArrayList<>();
-
         List<String> fileNames = Utils.plainFilenamesIn(objDir);
+
         if (fileNames != null) {
             for (String fileName : fileNames) {
-                // 检查文件名是否以剩余前缀开头
                 if (fileName.startsWith(remainingPrefix)) {
-                    matchedShas.add(dirPrefix + fileName);
+                    // Before adding, ensure the full SHA corresponds to an existing file
+                    String potentialFullSha = dirPrefix + fileName;
+                    if (Tools.getObjectFile(potentialFullSha, fileDirectory).exists()) {
+                        matchedShas.add(potentialFullSha);
+                    }
                 }
             }
         }
 
-        // 根据匹配结果返回
         if (matchedShas.size() == 1) {
             return matchedShas.get(0);
         } else if (matchedShas.size() > 1) {
-            // 多个匹配，返回null或抛出异常
-            // 如果希望直接报错，可以改为:
-            throw new GitletException("Ambiguous prefix: " + shaPrefix + ".");
-//            return null;
+            // Ambiguous prefix, but spec wants "No commit with that id exists."
+            // This might hide useful info from user, but adhering to spec.
+            throw new GitletException("No commit with that id exists.");
         } else {
-            return null;
+            // No matches found
+            throw new GitletException("No commit with that id exists.");
         }
     }
 
