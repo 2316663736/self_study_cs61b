@@ -58,6 +58,34 @@ public class Repository {
 
 
     public static final File GITLET_REMOTE_FILES_DIR = Utils.join(GITLET_DIR, "remote_files");
+
+    class remoteRepository {
+        private final File REMOTE_GITLET_DIR;
+        private final File REMOTE_GITLET_FILE_DIR;
+        private final File REMOTE_BRANCHES_DIR;
+        private final File REMOTE_GITLET_HEAD;
+        remoteRepository(String remoteDir) {
+            REMOTE_GITLET_DIR = Utils.join(remoteDir);
+            REMOTE_GITLET_FILE_DIR = Utils.join(REMOTE_GITLET_DIR, "file");
+            REMOTE_BRANCHES_DIR = Utils.join(REMOTE_GITLET_DIR, "branches");
+            REMOTE_GITLET_HEAD = Utils.join(REMOTE_GITLET_DIR, "head");
+        }
+        public File getRemoteGitletDir() {
+            return REMOTE_GITLET_DIR;
+        }
+        public File getRemoteGitletFileDir() {
+            return REMOTE_GITLET_FILE_DIR;
+        }
+        public File getRemoteBranchesDir() {
+            return REMOTE_BRANCHES_DIR;
+        }
+        public List<String> getRemoteGitletBranches() {
+            return Utils.plainFilenamesIn(REMOTE_BRANCHES_DIR);
+        }
+        public File getRemoteGitletHead() {
+            return REMOTE_GITLET_HEAD;
+        }
+    }
     /*  fill in the rest of this class. */
     public static void init() {
         if (gitletExist()) {
@@ -523,13 +551,15 @@ public class Repository {
         if (allRemoteFiles != null && allRemoteFiles.contains(remoteName)) {
             throw new GitletException("A remote with that name already exists.");
         }
-        Utils.writeContents(Utils.join(GITLET_REMOTE_FILES_DIR, remoteName), fileName);
+
+        // 标准化路径分隔符为正斜杠（测试期望的格式）
+        String normalizedPath = fileName.replace('\\', '/');
+        Utils.writeContents(Utils.join(GITLET_REMOTE_FILES_DIR, remoteName), normalizedPath);
     }
 
     public static void rmRemote(String remoteName) {
         checkGitlet();
-        List<String> allRemoteFiles = Utils.plainFilenamesIn(GITLET_REMOTE_FILES_DIR);
-        if (allRemoteFiles == null || !allRemoteFiles.contains(remoteName)) {
+        if (!remoteExist(remoteName)) {
             throw new GitletException("A remote with that name does not exist.");
         }
         File file = Utils.join(GITLET_REMOTE_FILES_DIR, remoteName);
@@ -538,14 +568,327 @@ public class Repository {
 
     public static void push(String remoteName, String remoteBranchName) {
         checkGitlet();
+
+        // 获取远程仓库路径
+        File remoteFile = Utils.join(GITLET_REMOTE_FILES_DIR, remoteName);
+        if (!remoteFile.exists()) {
+            throw new GitletException("Remote directory not found.");
+        }
+
+        String remotePath = Utils.readContentsAsString(remoteFile);
+        // 处理路径分隔符
+        remotePath = remotePath.replace('/', File.separatorChar);
+
+        // 构建远程路径 - 注意路径已经包含.gitlet
+        File remoteGitletDir = new File(CWD, remotePath);
+
+        // 检查远程.gitlet目录是否存在
+        if (!remoteGitletDir.exists()) {
+            throw new GitletException("Remote directory not found.");
+        }
+
+        // 获取远程仓库的文件目录和分支目录
+        File remoteFileDir = Utils.join(remoteGitletDir, "file");
+        File remoteBranchesDir = Utils.join(remoteGitletDir, "branches");
+        File remoteBranchFile = Utils.join(remoteBranchesDir, remoteBranchName);
+
+        // 获取当前分支
+        String currentBranch = Tools.readHeadBranch();
+        String localHeadCommitId = Tools.readHeadCommitId();
+
+        // 如果远程分支存在，检查是否可以fast-forward
+        if (remoteBranchFile.exists()) {
+            Branch remoteBranch = Branch.readBranch(remoteBranchFile);
+            String remoteHeadCommitId = remoteBranch.getNewest();
+
+            // 检查远程分支的头是否在本地分支的历史中
+            if (!isAncestor(remoteHeadCommitId, localHeadCommitId)) {
+                throw new GitletException("Please pull down remote changes before pushing.");
+            }
+
+            // 更新远程分支的所有提交历史
+            copyAllCommitsHistory(localHeadCommitId, remoteBranch);
+            remoteBranch.writeBranch(remoteBranchFile);
+        } else {
+            // 创建新分支，需要复制完整的提交历史
+            Branch newRemoteBranch = createBranchWithHistory(localHeadCommitId);
+            newRemoteBranch.writeBranch(remoteBranchFile);
+        }
+
+        // 复制所有需要的提交和文件到远程仓库
+        copyCommitsToRemote(localHeadCommitId, remoteFileDir);
+
+        // 如果推送的分支是远程的当前分支，更新远程的HEAD文件
+        File remoteHead = Utils.join(remoteGitletDir, "head");
+        if (remoteHead.exists()) {
+            String remoteHeadContent = Utils.readContentsAsString(remoteHead);
+            String remoteCurrentBranch = remoteHeadContent.substring(Utils.UID_LENGTH);
+
+            if (remoteCurrentBranch.equals(remoteBranchName)) {
+                Utils.writeContents(remoteHead, localHeadCommitId + remoteBranchName);
+            }
+        }
     }
     public static void fetch(String remoteName, String remoteBranchName) {
         checkGitlet();
+
+        // 获取远程仓库路径
+        File remoteFile = Utils.join(GITLET_REMOTE_FILES_DIR, remoteName);
+        if (!remoteFile.exists()) {
+            throw new GitletException("Remote directory not found.");
+        }
+
+        String remotePath = Utils.readContentsAsString(remoteFile);
+        // 处理路径分隔符
+        remotePath = remotePath.replace('/', File.separatorChar);
+
+        // 构建远程路径
+        File remoteGitletDir = new File(CWD, remotePath);
+
+        // 检查远程.gitlet目录是否存在
+        if (!remoteGitletDir.exists()) {
+            throw new GitletException("Remote directory not found.");
+        }
+
+        // 获取远程分支
+        File remoteBranchesDir = Utils.join(remoteGitletDir, "branches");
+        File remoteBranchFile = Utils.join(remoteBranchesDir, remoteBranchName);
+
+        if (!remoteBranchFile.exists()) {
+            throw new GitletException("That remote does not have that branch.");
+        }
+
+        // 读取远程分支
+        Branch remoteBranch = Branch.readBranch(remoteBranchFile);
+
+        // 获取远程仓库的文件目录
+        File remoteFileDir = Utils.join(remoteGitletDir, "file");
+
+        // 复制远程提交和文件到本地
+        String remoteHeadCommitId = remoteBranch.getNewest();
+        copyCommitsFromRemote(remoteHeadCommitId, remoteFileDir);
+
+        // 创建或更新本地的远程分支 [remote name]/[remote branch name]
+        String localRemoteBranchName = remoteName + "/" + remoteBranchName;
+        File localRemoteBranchFile = Utils.join(GITLET_BRANCHES_DIR, localRemoteBranchName);
+
+        // 复制完整的分支历史
+        Branch localRemoteBranch = new Branch(remoteBranch);
+        localRemoteBranch.writeBranch(localRemoteBranchFile);
+    }
+    /**
+     * 创建带有完整历史的分支
+     */
+    private static Branch createBranchWithHistory(String headCommitId) {
+        Branch newBranch = new Branch();
+
+        // 构建完整的提交历史
+        List<String> history = new ArrayList<>();
+        String currentId = headCommitId;
+
+        while (currentId != null) {
+            history.add(0, currentId);  // 添加到开头
+            Commit commit = Commit.readCommit(Tools.getObjectFile(currentId, GITLET_FILE_DIR));
+            currentId = commit.getFather();  // 只跟随第一个父提交
+        }
+
+        // 添加所有历史到分支
+        for (String commitId : history) {
+            newBranch.add(commitId);
+        }
+
+        return newBranch;
+    }
+
+    /**
+     * 复制所有提交历史到远程分支
+     */
+    private static void copyAllCommitsHistory(String localHeadId, Branch remoteBranch) {
+        // 获取本地的完整历史
+        List<String> localHistory = new ArrayList<>();
+        String currentId = localHeadId;
+
+        while (currentId != null) {
+            localHistory.add(0, currentId);
+            Commit commit = Commit.readCommit(Tools.getObjectFile(currentId, GITLET_FILE_DIR));
+            currentId = commit.getFather();
+        }
+
+        // 更新远程分支的历史
+        for (String commitId : localHistory) {
+            if (!remoteBranch.containsCommitID(commitId)) {
+                remoteBranch.add(commitId);
+            }
+        }
+
+        remoteBranch.reset(localHeadId);
     }
     public static void pull(String remoteName, String remoteBranchName) {
         checkGitlet();
+
+        // 先执行fetch
+        fetch(remoteName, remoteBranchName);
+
+        // 然后merge远程分支
+        String localRemoteBranchName = remoteName + "/" + remoteBranchName;
+        merge(localRemoteBranchName);
+    }
+    private static boolean remoteExist(String remoteName) {
+        List<String> allRemoteFiles = Utils.plainFilenamesIn(GITLET_REMOTE_FILES_DIR);
+        return allRemoteFiles != null && allRemoteFiles.contains(remoteName);
+    }
+    private static File remoteBranchCheck(String remoteName, String remoteBranchName) {
+        checkGitlet();
+        if(!remoteExist(remoteName)) {
+            throw new GitletException("A remote with that name does not exist.");
+        };
+        File otherGitlet = Utils.join(CWD,
+                readContentsAsString(join(GITLET_REMOTE_FILES_DIR, remoteName)));
+        if (!otherGitlet.exists()) {
+            throw new GitletException("Remote directory not found.");
+        }
+        File otherBranch = join(otherGitlet, GITLET_BRANCHES_DIR.getName(), remoteBranchName);
+        if (!otherBranch.exists()) {
+            throw new GitletException("That remote does not have that branch.");
+        }
+        return otherGitlet;
+    }
+    /**
+     * 检查ancestorId是否是descendantId的祖先
+     */
+    private static boolean isAncestor(String ancestorId, String descendantId) {
+        if (ancestorId.equals(descendantId)) {
+            return true;
+        }
+
+        Set<String> visited = new HashSet<>();
+        Queue<String> queue = new LinkedList<>();
+        queue.offer(descendantId);
+
+        while (!queue.isEmpty()) {
+            String current = queue.poll();
+            if (current.equals(ancestorId)) {
+                return true;
+            }
+
+            if (visited.contains(current)) {
+                continue;
+            }
+            visited.add(current);
+
+            Commit commit = Commit.readCommit(Tools.getObjectFile(current, GITLET_FILE_DIR));
+            if (commit.father != null) {
+                queue.offer(commit.father);
+            }
+            if (commit.merge != null) {
+                queue.offer(commit.merge);
+            }
+        }
+
+        return false;
     }
 
+    /**
+     * 复制提交和相关文件到远程仓库
+     */
+    private static void copyCommitsToRemote(String headCommitId, File remoteFileDir) {
+        Set<String> visited = new HashSet<>();
+        Queue<String> queue = new LinkedList<>();
+        queue.offer(headCommitId);
+
+        while (!queue.isEmpty()) {
+            String commitId = queue.poll();
+            if (visited.contains(commitId)) {
+                continue;
+            }
+            visited.add(commitId);
+
+            // 复制提交对象
+            File localCommitFile = Tools.getObjectFile(commitId, GITLET_FILE_DIR);
+            File remoteCommitFile = Tools.getObjectFile(commitId, remoteFileDir);
+
+            if (!remoteCommitFile.exists()) {
+                Tools.createFile(remoteCommitFile);
+                byte[] content = Utils.readContents(localCommitFile);
+                Utils.writeContents(remoteCommitFile, (Object) content);
+
+                // 读取提交并复制相关文件
+                Commit commit = Commit.readCommit(localCommitFile);
+
+                // 复制提交中的所有文件
+                for (String fileName : commit.getAllFiles()) {
+                    String fileSHA = commit.getFileSHA(fileName);
+                    File localFile = Tools.getObjectFile(fileSHA, GITLET_FILE_DIR);
+                    File remoteFile = Tools.getObjectFile(fileSHA, remoteFileDir);
+
+                    if (!remoteFile.exists()) {
+                        Tools.createFile(remoteFile);
+                        byte[] fileContent = Utils.readContents(localFile);
+                        Utils.writeContents(remoteFile, (Object) fileContent);
+                    }
+                }
+
+                // 添加父提交到队列
+                if (commit.father != null) {
+                    queue.offer(commit.father);
+                }
+                if (commit.merge != null) {
+                    queue.offer(commit.merge);
+                }
+            }
+        }
+    }
+
+    /**
+     * 从远程仓库复制提交和相关文件
+     */
+    private static void copyCommitsFromRemote(String headCommitId, File remoteFileDir) {
+        Set<String> visited = new HashSet<>();
+        Queue<String> queue = new LinkedList<>();
+        queue.offer(headCommitId);
+
+        while (!queue.isEmpty()) {
+            String commitId = queue.poll();
+            if (visited.contains(commitId)) {
+                continue;
+            }
+            visited.add(commitId);
+
+            // 复制提交对象
+            File remoteCommitFile = Tools.getObjectFile(commitId, remoteFileDir);
+            File localCommitFile = Tools.getObjectFile(commitId, GITLET_FILE_DIR);
+
+            if (!localCommitFile.exists()) {
+                Tools.createFile(localCommitFile);
+                byte[] content = Utils.readContents(remoteCommitFile);
+                Utils.writeContents(localCommitFile, (Object) content);
+
+                // 读取提交并复制相关文件
+                Commit commit = Commit.readCommit(remoteCommitFile);
+
+                // 复制提交中的所有文件
+                for (String fileName : commit.getAllFiles()) {
+                    String fileSHA = commit.getFileSHA(fileName);
+                    File remoteFile = Tools.getObjectFile(fileSHA, remoteFileDir);
+                    File localFile = Tools.getObjectFile(fileSHA, GITLET_FILE_DIR);
+
+                    if (!localFile.exists()) {
+                        Tools.createFile(localFile);
+                        byte[] fileContent = Utils.readContents(remoteFile);
+                        Utils.writeContents(localFile, (Object) fileContent);
+                    }
+                }
+
+                // 添加父提交到队列
+                if (commit.father != null) {
+                    queue.offer(commit.father);
+                }
+                if (commit.merge != null) {
+                    queue.offer(commit.merge);
+                }
+            }
+        }
+    }
     private static void changeOneFileCWD(String fileName, String sha1OfFile) {
         File pathToWrite = Utils.join(CWD, fileName);
         //sha1为null，代表需要删除

@@ -36,11 +36,11 @@ public class Commit implements Dumpable {
     /**
      * 父提交
      */
-    private String father;
+    public String father;
     /**
      * 父提交（被合并的分支）
      */
-    private String merge = null;
+    public String merge = null;
     /**
      * 文件名到sha1的映射
      */
@@ -60,6 +60,14 @@ public class Commit implements Dumpable {
             return;
         }
         this.files = lastCommit.files;
+    }
+    // 或者添加getter方法：
+    public String getFather() {
+        return father;
+    }
+
+    public String getMerge() {
+        return merge;
     }
 
     /**

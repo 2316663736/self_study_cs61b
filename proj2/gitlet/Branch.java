@@ -22,9 +22,7 @@ public class Branch implements Dumpable {
         this.add(init);
     }
 
-    public Branch(Branch other) {
-        this.allID = other.allID;
-    }
+
 
     public boolean containsCommitID(String id) {
         return allID.contains(id);
@@ -70,5 +68,35 @@ public class Branch implements Dumpable {
     public static boolean branchExists(String branchName) {
         List<String> allBranchNames = Utils.plainFilenamesIn(GITLET_BRANCHES_DIR);
         return allBranchNames != null && allBranchNames.contains(branchName);
+    }
+    public Branch(Branch other) {
+        this.allID = new ArrayList<>(other.allID);
+        this.headCommit = other.headCommit;
+    }
+
+    // 添加方法来复制提交历史
+    public void copyHistory(String newCommitId, Branch fromBranch) {
+        // 找到分叉点
+        int splitIndex = -1;
+        for (int i = allID.size() - 1; i >= 0; i--) {
+            if (fromBranch.containsCommitID(allID.get(i))) {
+                splitIndex = i;
+                break;
+            }
+        }
+
+        // 如果找到分叉点，保留到分叉点的历史，然后添加新的历史
+        if (splitIndex >= 0) {
+            // 保留到分叉点
+            allID = new ArrayList<>(allID.subList(0, splitIndex + 1));
+
+            // 从fromBranch找到新的历史
+            int fromIndex = fromBranch.allID.indexOf(allID.get(splitIndex));
+            for (int i = fromIndex + 1; i < fromBranch.allID.size(); i++) {
+                allID.add(fromBranch.allID.get(i));
+            }
+        }
+
+        headCommit = newCommitId;
     }
 }
